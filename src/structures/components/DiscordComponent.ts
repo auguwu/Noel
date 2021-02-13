@@ -21,12 +21,14 @@
  */
 
 import { Component, Subscribe, PluginReference, ComponentAPI, Inject } from '@ayanaware/bento';
-import type ConfigurationComponent from './ConfigurationComponent';
-import { Client } from 'wumpcord';
+import ConfigurationComponent from './ConfigurationComponent';
+import { Client, InteractionCreateEvent, MessageCreateEvent } from 'wumpcord';
 import Loggaby from 'loggaby';
+import { Emojis } from '../../Constants';
+import Noel from '../Noel';
 
 const logger = new Loggaby({
-  format: `{grey}[Discord / ${process.pid} / {level.name}]{grey} `
+  format: `{cyan}[Discord ~ ${process.pid} ~ {level.name}]{cyan} `
 });
 
 const EVENTS = [
@@ -36,19 +38,21 @@ const EVENTS = [
   'guildMemberUpdate',
   'shardDisconnect',
   'shardReady',
-  'shardResume'
+  'shardResume',
+  'message',
+  'interactionReceive'
 ];
 
 export default class DiscordComponent implements Component {
   public client!: Client;
-  public parent: PluginReference = null as any;
-  public name: string = 'discord';
+  public parent: PluginReference = Noel;
+  public name: string = 'Discord';
   public api!: ComponentAPI;
 
-  @Inject()
+  @Inject(ConfigurationComponent)
   private config!: ConfigurationComponent;
 
-  onLoad() {
+  async onLoad() {
     return this.connect();
   }
 
@@ -89,5 +93,17 @@ export default class DiscordComponent implements Component {
       name: 'who\'s cuter',
       type: 5
     });
+  }
+
+  @Subscribe(DiscordComponent, 'message')
+  private async onMessage(event: MessageCreateEvent) {
+    if (event.message.content === '!hello')
+      return event.channel.send(`${Emojis.TransHeart} **Hello, ${event.message.author.tag}~**`);
+  }
+
+  @Subscribe(DiscordComponent, 'interactionReceive')
+  private async onInteractionReceived(event: InteractionCreateEvent) {
+    console.log(event);
+    return event.message?.send('hello world');
   }
 }

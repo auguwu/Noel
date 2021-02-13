@@ -4,10 +4,8 @@
   "exclude": ["node_modules/**/*"],
   "compilerOptions": {
     "moduleResolution": "node",
-    "types": ["node"],
-    "baseUrl": ".",
-    "paths": {
-      "~/": ["src/"]
-    }
+    "outDir": "./build",
+    "rootDir": "./src",
+    "types": ["node"]
   }
 }

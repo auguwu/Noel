@@ -48,7 +48,7 @@ const schema: { [P in keyof Configuration]: string | SchemaOptions } = {
 
 export default class ConfigurationComponent implements Component {
   private config!: Configuration;
-  public name: string = 'config';
+  public name: string = 'Configuration';
 
   async onLoad() {
     this.config = parse<Configuration>({

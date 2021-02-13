@@ -20,8 +20,28 @@
  * SOFTWARE.
  */
 
-import { Component } from '@ayanaware/bento';
+import { Component, PluginReference, Subscribe } from '@ayanaware/bento';
+import { Collection } from '@augu/collections';
+import Discord from '../components/DiscordComponent';
+import { Command } from '../Command';
+import Noel from '../Noel';
+import type { MessageCreateEvent } from 'wumpcord';
 
 export default class CommandManager implements Component {
+  private commands: Collection<string, Command> = new Collection();
+  public parent: PluginReference = Noel;
   public name: string = 'commands';
+
+  async onChildLoad(command: Command) {
+    // yes
+  }
+
+  async onChildUnload(command: Command) {
+    // yes
+  }
+
+  @Subscribe(Discord, 'message')
+  private async onMessageCreate(event: MessageCreateEvent) {
+    // yes
+  }
 }

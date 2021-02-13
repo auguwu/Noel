@@ -19,3 +19,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+import { Bento, FSComponentLoader } from '@ayanaware/bento';
+import Loggaby from 'loggaby';
+import { join } from 'path';
+import { version as wumpVer } from 'wumpcord';
+import DiscordComponent from './structures/components/DiscordComponent';
+import Noel from './structures/Noel';
+
+const { version } = require('../package.json');
+const bento = new Bento();
+const logger = new Loggaby({
+  format: `{cyan}[main ~ ${process.pid} ~ {level.color}{level.name}{cyan}]{cyan} `
+});
+
+async function main() {
+  logger.log('Initializing Noel...');
+  logger.log(`Bento: ${bento.version} | Wumpcord: ${wumpVer} | Bot: ${version}`);
+
+  const bot = new Noel();
+  const fsloader = new FSComponentLoader();
+
+  await fsloader.addDirectory(join(__dirname, 'structures', 'components'));
+  await bento.addPlugins([fsloader, bot]);
+  await bento.verify();
+
+  process.on('SIGINT', () => {
+    logger.warn('Received `SIGINT` call, disposing');
+
+    const discord = bot.api.getComponent(DiscordComponent);
+    discord.disconnect();
+
+    process.exit(0);
+  });
+}
+
+main();

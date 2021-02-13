@@ -20,6 +20,7 @@
  * SOFTWARE.
  */
 
+import type { MessageContentOptions } from 'wumpcord/build/types';
 import type { Message, TextChannel } from 'wumpcord';
 import type { Command } from './Command';
 import Noel from './Noel';
@@ -37,5 +38,21 @@ export default class CommandMessage {
     this.message = message;
     this.args = args;
     this.bot = command.api!.getEntity<Noel>(Noel);
+  }
+
+  get author() {
+    return this.message.author;
+  }
+
+  get channel() {
+    return this.message.channel;
+  }
+
+  get guild() {
+    return this.message.guild!;
+  }
+
+  reply(content: string | MessageContentOptions, options?: MessageContentOptions) {
+    return this.channel.send(content, options);
   }
 }
