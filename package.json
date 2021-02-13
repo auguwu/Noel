@@ -12,8 +12,8 @@
   },
   "dependencies": {
     "@augu/collections": "1.0.3",
-    "@augu/dotenv": "^1.2.0",
-    "@augu/utils": "1.0.1",
+    "@augu/dotenv": "1.2.0",
+    "@augu/utils": "1.0.2",
     "@ayanaware/bento": "1.0.0-rc.15",
     "loggaby": "4.0.2",
     "mongodb": "3.6.4",

@@ -77,6 +77,9 @@ export default class DiscordComponent implements Component {
       }
     });
 
+    // @ts-ignore fuck
+    this.client.addListener = (event, listener) => this.client.on(event, listener);
+
     this.api.forwardEvents(this.client as any, EVENTS);
     return this.client.connect()
       .then(() => logger.log('Successfully established a connection with Discord.'))
