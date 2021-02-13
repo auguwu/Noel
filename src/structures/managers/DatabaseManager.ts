@@ -19,3 +19,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+import { Component } from '@ayanaware/bento';
+
+export default class DatabaseManager implements Component {
+  public name: string = 'database';
+}

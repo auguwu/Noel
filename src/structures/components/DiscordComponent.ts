@@ -20,12 +20,13 @@
  * SOFTWARE.
  */
 
-import { Component, Subscribe, PluginReference, ComponentAPI } from '@ayanaware/bento';
+import { Component, Subscribe, PluginReference, ComponentAPI, Inject } from '@ayanaware/bento';
+import type ConfigurationComponent from './ConfigurationComponent';
 import { Client } from 'wumpcord';
 import Loggaby from 'loggaby';
 
 const logger = new Loggaby({
-  format: `{grey}[Noel / ${process.pid} / {level.name}]{grey} `
+  format: `{grey}[Discord / ${process.pid} / {level.name}]{grey} `
 });
 
 const EVENTS = [
@@ -38,11 +39,14 @@ const EVENTS = [
   'shardResume'
 ];
 
-export default class NoelComponent implements Component {
+export default class DiscordComponent implements Component {
   public client!: Client;
   public parent: PluginReference = null as any;
-  public name: string = 'noel';
+  public name: string = 'discord';
   public api!: ComponentAPI;
+
+  @Inject()
+  private config!: ConfigurationComponent;
 
   onLoad() {
     return this.connect();
@@ -55,10 +59,11 @@ export default class NoelComponent implements Component {
   private connect() {
     logger.log('Now connecting to Discord...');
 
+    const token = this.config.getProperty('DISCORD_TOKEN');
     this.client = new Client({
       interactions: true,
       getAllUsers: true,
-      token: '',
+      token,
       ws: {
         intents: [
           'guilds',
@@ -76,7 +81,7 @@ export default class NoelComponent implements Component {
       );
   }
 
-  @Subscribe(NoelComponent, 'ready')
+  @Subscribe(DiscordComponent, 'ready')
   private async onReady() {
     logger.log(`Ready as ${this.client.user.tag}!`);
 

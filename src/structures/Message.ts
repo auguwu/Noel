@@ -19,3 +19,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+import type { Message, TextChannel } from 'wumpcord';
+import type { Command } from './Command';
+import Noel from './Noel';
+
+export default class CommandMessage {
+  public message: Message<TextChannel>;
+  public args: string[];
+  public bot: Noel;
+
+  constructor(
+    message: Message<TextChannel>,
+    command: Command,
+    args: string[]
+  ) {
+    this.message = message;
+    this.args = args;
+    this.bot = command.api!.getEntity<Noel>(Noel);
+  }
+}

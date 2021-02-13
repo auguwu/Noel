@@ -20,21 +20,26 @@
  * SOFTWARE.
  */
 
-import { Component, ComponentAPI } from '@ayanaware/bento';
 import { parse, SchemaOptions } from '@augu/dotenv';
-import { join } from 'node:path';
+import { Component } from '@ayanaware/bento';
+import { join } from 'path';
 
 interface Configuration {
   BIRTHDAY_CHANNEL_ID: string;
   POLLS_CHANNEL_ID: string;
   WAH_CHANNEL_ID: string;
   DISCORD_TOKEN: string;
+  OWNER_IDS: string[];
 }
 
 const schema: { [P in keyof Configuration]: string | SchemaOptions } = {
   BIRTHDAY_CHANNEL_ID: 'string',
   POLLS_CHANNEL_ID: 'string',
   WAH_CHANNEL_ID: 'string',
+  OWNER_IDS: {
+    type: 'array',
+    default: []
+  },
   DISCORD_TOKEN: {
     type: 'string',
     default: undefined
@@ -43,7 +48,6 @@ const schema: { [P in keyof Configuration]: string | SchemaOptions } = {
 
 export default class ConfigurationComponent implements Component {
   private config!: Configuration;
-  public api!: ComponentAPI;
   public name: string = 'config';
 
   async onLoad() {

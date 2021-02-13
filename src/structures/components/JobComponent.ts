@@ -21,8 +21,8 @@
  */
 
 import { ScheduledTask, schedule, validate } from 'node-cron';
-import { Component, ComponentAPI } from '@ayanaware/bento';
 import { Collection } from '@augu/collections';
+import { Component } from '@ayanaware/bento';
 import Loggaby from 'loggaby';
 
 const logger = new Loggaby({
@@ -31,7 +31,6 @@ const logger = new Loggaby({
 
 export default class CronJobComponent implements Component {
   private jobs: Collection<string, ScheduledTask> = new Collection();
-  public api!: ComponentAPI;
   public name: string = 'jobs';
 
   async onChildLoad(job: any) {

@@ -5,7 +5,7 @@
   "compilerOptions": {
     "moduleResolution": "node",
     "types": ["node"],
-    "baseUrl": "src",
+    "baseUrl": ".",
     "paths": {
       "~/": ["src/"]
     }
