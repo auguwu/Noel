@@ -19,3 +19,70 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+import { Component, Subscribe, PluginReference, ComponentAPI } from '@ayanaware/bento';
+import { Client } from 'wumpcord';
+import Loggaby from 'loggaby';
+
+const logger = new Loggaby({
+  format: `{grey}[Noel / ${process.pid} / {level.name}]{grey} `
+});
+
+const EVENTS = [
+  'ready',
+  'guildMemberAdd',
+  'guildMemberRemove',
+  'guildMemberUpdate',
+  'shardDisconnect',
+  'shardReady',
+  'shardResume'
+];
+
+export default class NoelComponent implements Component {
+  public client!: Client;
+  public parent: PluginReference = null as any;
+  public name: string = 'noel';
+  public api!: ComponentAPI;
+
+  onLoad() {
+    return this.connect();
+  }
+
+  disconnect() {
+    return this.client.disconnect(false);
+  }
+
+  private connect() {
+    logger.log('Now connecting to Discord...');
+
+    this.client = new Client({
+      interactions: true,
+      getAllUsers: true,
+      token: '',
+      ws: {
+        intents: [
+          'guilds',
+          'guildMessages',
+          'guildMembers'
+        ]
+      }
+    });
+
+    this.api.forwardEvents(this.client as any, EVENTS);
+    return this.client.connect()
+      .then(() => logger.log('Successfully established a connection with Discord.'))
+      .catch(error =>
+        logger.error('Unable to establish a connection with Discord', error)
+      );
+  }
+
+  @Subscribe(NoelComponent, 'ready')
+  private async onReady() {
+    logger.log(`Ready as ${this.client.user.tag}!`);
+
+    this.client.setStatus('online', {
+      name: 'who\'s cuter',
+      type: 5
+    });
+  }
+}

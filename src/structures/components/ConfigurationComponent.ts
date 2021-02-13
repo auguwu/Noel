@@ -19,3 +19,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+import { Component, ComponentAPI } from '@ayanaware/bento';
+import { parse, SchemaOptions } from '@augu/dotenv';
+import { join } from 'node:path';
+
+interface Configuration {
+  BIRTHDAY_CHANNEL_ID: string;
+  POLLS_CHANNEL_ID: string;
+  WAH_CHANNEL_ID: string;
+  DISCORD_TOKEN: string;
+}
+
+const schema: { [P in keyof Configuration]: string | SchemaOptions } = {
+  BIRTHDAY_CHANNEL_ID: 'string',
+  POLLS_CHANNEL_ID: 'string',
+  WAH_CHANNEL_ID: 'string',
+  DISCORD_TOKEN: {
+    type: 'string',
+    default: undefined
+  }
+};
+
+export default class ConfigurationComponent implements Component {
+  private config!: Configuration;
+  public api!: ComponentAPI;
+  public name: string = 'config';
+
+  async onLoad() {
+    this.config = parse<Configuration>({
+      file: join(__dirname, '..', '..', '..', '.env'),
+      populate: false,
+      delimiter: ',',
+      schema
+    });
+  }
+
+  getProperty<Key extends keyof Configuration>(key: Key): Configuration[Key] {
+    if (!this.config.hasOwnProperty(key)) throw new TypeError(`Key '${key}' was not found in configuration`);
+
+    return this.config[key];
+  }
+}

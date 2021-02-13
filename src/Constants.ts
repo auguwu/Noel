@@ -19,3 +19,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+/** Color used for embeds */
+export const Color = 0x80A3DD;
+
+/** List of emojis to use */
+export enum Emojis {
+  TransHeart = '<:noelTransHeart:808820757211119657>',
+  GayHeart   = '<:noelGayHeart:808820825821413396>'
+}

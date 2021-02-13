@@ -19,3 +19,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+import { ScheduledTask, schedule, validate } from 'node-cron';
+import { Component, ComponentAPI } from '@ayanaware/bento';
+import { Collection } from '@augu/collections';
+import Loggaby from 'loggaby';
+
+const logger = new Loggaby({
+  format: `{grey}[CronJob / ${process.pid} / {level.name}]{grey} `
+});
+
+export default class CronJobComponent implements Component {
+  private jobs: Collection<string, ScheduledTask> = new Collection();
+  public api!: ComponentAPI;
+  public name: string = 'jobs';
+
+  async onChildLoad(job: any) {
+    if (!validate(job.expression)) throw new TypeError(`Expression '${job.expression}' is invalid.`);
+
+    const task = schedule(job.expression, async () => {
+      try {
+        await job.run();
+      } catch(ex) {
+        logger.error(`Unable to run cron job '${job.name}':\n`, ex);
+      }
+    });
+
+    logger.log(`Initialized job "${job.name}"`);
+    this.jobs.set(job.name, task);
+  }
+
+  async onChildUnload(job: any) {
+    logger.warn(`Expected to unload job "${job.name}"`);
+
+    const task = this.jobs.get(job.name);
+    if (!task) throw new TypeError(`Job "${job.name}" doesn't exist, was it unloaded already?`);
+
+    task.destroy();
+    this.jobs.delete(job.name);
+
+    logger.warn(`Job "${job.name}" has been unloaded successfully.`);
+  }
+}
