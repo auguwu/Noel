@@ -1,0 +1,13 @@
+{
+  "extends": "@augu/tsconfig",
+  "include": ["src/**/*"],
+  "exclude": ["node_modules/**/*"],
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "types": ["node"],
+    "baseUrl": "src",
+    "paths": {
+      "~/": ["src/"]
+    }
+  }
+}
