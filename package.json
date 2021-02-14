@@ -18,7 +18,7 @@
     "loggaby": "4.0.2",
     "mongodb": "3.6.4",
     "node-cron": "2.0.3",
-    "wumpcord": "1.0.7"
+    "wumpcord": "1.0.8"
   },
   "devDependencies": {
     "@augu/eslint-config": "1.10.0",
