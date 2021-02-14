@@ -13,8 +13,7 @@
   "dependencies": {
     "@augu/collections": "1.0.3",
     "@augu/dotenv": "1.2.0",
-    "@augu/orchid": "1.8.2",
-    "@augu/utils": "1.0.2",
+    "@augu/utils": "1.0.3",
     "@ayanaware/bento": "1.0.0-rc.15",
     "loggaby": "4.0.2",
     "mongodb": "3.6.4",
@@ -24,7 +23,7 @@
   "devDependencies": {
     "@augu/eslint-config": "1.10.0",
     "@augu/tsconfig": "1.0.1",
-    "@types/node": "14.14.27",
+    "@types/node": "14.14.28",
     "@types/node-cron": "2.0.3",
     "@typescript-eslint/eslint-plugin": "4.15.0",
     "@typescript-eslint/parser": "4.15.0",
