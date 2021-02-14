@@ -6,6 +6,6 @@
     "moduleResolution": "node",
     "outDir": "./build",
     "rootDir": "./src",
-    "types": ["node"]
+    "types": ["@types/node"]
   }
 }

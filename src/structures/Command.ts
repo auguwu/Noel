@@ -20,8 +20,47 @@
  * SOFTWARE.
  */
 
-import { Component } from '@ayanaware/bento';
+import type { Message, TextChannel } from 'wumpcord';
+import type Noel from './Noel';
 
-export default class CommandManager implements Component {
-  public name: string = 'Commands';
+export enum CommandCategory {
+  Cutie = 'Cutie',
+  Staff = 'Staff',
+  Utils = 'Utilities',
+  Core = 'Core'
+}
+
+interface CommandInfo {
+  description: string;
+  cooldown?: number;
+  category: CommandCategory;
+  aliases?: string[];
+  usage?: string;
+  name: string;
+}
+
+export default abstract class Command {
+  public description: string;
+  public cooldown: number;
+  public category: CommandCategory;
+  public aliases: string[];
+  public bot!: Noel;
+  public usage: string;
+  public name: string;
+
+  constructor(info: CommandInfo) {
+    this.description = info.description;
+    this.cooldown = info.cooldown ?? 5;
+    this.category = info.category;
+    this.aliases = info.aliases ?? [];
+    this.usage = info.usage ?? '';
+    this.name = info.name;
+  }
+
+  init(noel: Noel) {
+    this.bot = noel;
+    return this;
+  }
+
+  abstract run(msg: Message<TextChannel>, args: string[]): Promise<any>;
 }

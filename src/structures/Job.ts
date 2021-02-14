@@ -20,8 +20,24 @@
  * SOFTWARE.
  */
 
-import { Component } from '@ayanaware/bento';
+import { validate } from 'node-cron';
 
-export default class CommandManager implements Component {
-  public name: string = 'Commands';
+interface CronJobOptions {
+  expression: string;
+  name: string;
+}
+
+export default abstract class CronJob {
+  public expression: string;
+  public name: string;
+  public bot!: any;
+
+  constructor(opts: CronJobOptions) {
+    if (!validate(opts.expression)) throw new TypeError(`Expression '${opts.expression}' was invalid`);
+
+    this.expression = opts.expression;
+    this.name = opts.name;
+  }
+
+  abstract run(): Promise<any>;
 }
