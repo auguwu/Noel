@@ -13,6 +13,7 @@
   "dependencies": {
     "@augu/collections": "1.0.3",
     "@augu/dotenv": "1.2.0",
+    "@augu/orchid": "^2.0.1",
     "@augu/utils": "1.0.3",
     "@ayanaware/bento": "1.0.0-rc.15",
     "loggaby": "4.0.2",
