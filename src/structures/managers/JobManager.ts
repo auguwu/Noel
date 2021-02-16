@@ -20,31 +20,43 @@
  * SOFTWARE.
  */
 
-import { FSComponentLoader, PluginAPI, Plugin } from '@ayanaware/bento';
+import { schedule, ScheduledTask } from 'node-cron';
+import { Component, Inject } from '@ayanaware/bento';
+import { Ctor, readdir } from '@augu/utils';
+import { Collection } from '@augu/collections';
+import type CronJob from '../Job';
+import { join } from 'path';
 import Logger from '@ayanaware/logger';
-import { resolve } from 'path';
+import Noel from '../Noel';
 
 const logger = Logger.get();
 
-export default class Noel implements Plugin {
-  private fsLoader!: FSComponentLoader;
-  public version: string;
-  public api!: PluginAPI;
-  public name: string = 'Noel';
+export default class JobManager implements Component {
+  private jobs: Collection<string, ScheduledTask> = new Collection();
+  public name = 'JobManager';
 
-  constructor() {
-    this.version = (require('../../package.json')).version;
-  }
+  @Inject(Noel)
+  private bot!: Noel;
 
   async onLoad() {
-    logger.info('Initializing Noel...');
+    const files = await readdir(join(__dirname, '..', '..', 'jobs'));
+    logger.info(`Found ${files.length} jobs to initialize`);
 
-    this.fsLoader = new FSComponentLoader();
-    this.fsLoader.name = 'NoelFSComponentLoader';
-    await this.api.bento.addPlugin(this.fsLoader);
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const ctor: Ctor<CronJob> = await import(file);
+      const job = ctor.default ? new ctor.default() : new ctor();
 
-    // load other components
-    logger.debug('Initialized filesystem component loader plugin, now bootstrapping components...');
+      job.init(this.bot);
+      logger.info(`Found & initialized job "${job.name}"`);
 
+      schedule(job.expression, async() => {
+        try {
+          await job.run();
+        } catch(ex) {
+          logger.error(ex);
+        }
+      }, { timezone: 'America/Phoenix' });
+    }
   }
 }

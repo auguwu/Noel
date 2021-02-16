@@ -21,6 +21,7 @@
  */
 
 import { validate } from 'node-cron';
+import type Noel from './Noel';
 
 interface CronJobOptions {
   expression: string;
@@ -30,13 +31,20 @@ interface CronJobOptions {
 export default abstract class CronJob {
   public expression: string;
   public name: string;
-  public bot!: any;
+  public bot!: Noel;
 
   constructor(opts: CronJobOptions) {
     if (!validate(opts.expression)) throw new TypeError(`Expression '${opts.expression}' was invalid`);
 
     this.expression = opts.expression;
     this.name = opts.name;
+  }
+
+  init(noel: Noel) {
+    if (!this.bot)
+      this.bot = noel;
+
+    return this;
   }
 
   abstract run(): Promise<any>;
