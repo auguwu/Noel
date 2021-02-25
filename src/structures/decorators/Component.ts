@@ -39,7 +39,7 @@ const _Component: PropertyDecorator = (target: any, property) => {
   if (reference === undefined)
     throw new TypeError('Unable to infer type for reference');
 
-  if (!isNotInjectable(reference))
+  if (isNotInjectable(reference))
     throw new TypeError('Inferred reference is not injectable');
 
   const references: ComponentReflectReference[] = Reflect.getMetadata(MetadataKeys.Component, target) ?? [];

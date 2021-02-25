@@ -26,9 +26,6 @@ const SYMBOL = Symbol('$noel::components::not_injectable');
  * Class decorator to mark a class a non injectable object
  */
 const NotInjectable: ClassDecorator = (target) => {
-  //if (target.prototype !== undefined)
-  //  throw new TypeError(`Target class "${target.name}" shouldn't be a static class`);
-
   target.constructor[SYMBOL] = false;
 };
 
@@ -38,12 +35,12 @@ const NotInjectable: ClassDecorator = (target) => {
  */
 export function isNotInjectable(target: any) {
   if (target.constructor === null)
-    return false;
+    return true;
 
-  return (
-    target.constructor[SYMBOL] !== undefined &&
-    target.constructor[SYMBOL] === false
-  );
+  if (!target.constructor[SYMBOL])
+    return false; // it is injectable
+
+  return (target.constructor[SYMBOL] === false);
 }
 
 export default NotInjectable;

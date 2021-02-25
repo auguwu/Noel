@@ -20,9 +20,9 @@
  * SOFTWARE.
  */
 
-import { Component, Config, Discord, Logger, NotInjectable, Service } from '..';
+import { Component, Config, Discord, Logger } from '..';
+import { Subscribe, NotInjectable } from '../decorators';
 import { Color, Emojis } from '../../Constants';
-import { Subscribe } from '../decorators';
 
 import {
   GuildMemberRemoveEvent,
@@ -32,7 +32,7 @@ import {
 } from 'wumpcord';
 
 @NotInjectable
-export default class ListenerService implements Service {
+export default class ListenerService {
   private logger = Logger.get();
   public name = 'listeners';
 

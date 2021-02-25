@@ -28,6 +28,8 @@ import * as utils from '@augu/utils';
 import { join } from 'path';
 import Discord from './components/Discord';
 import Logger from './Logger';
+import JobService from './services/JobService';
+import CommandService from './services/CommandService';
 
 /**
  * Represents the application for the bot, this can't be injectable using the `@Component` decorator
@@ -35,7 +37,9 @@ import Logger from './Logger';
 @NotInjectable
 export default class Application {
   public components: Collection<string, Component>;
-  public services: Collection<string, Service>;
+  public listeners: ListenerService;
+  public commands: CommandService;
+  public jobs: JobService;
 
   private references = new Collection<any, string>();
   private logger = Logger.get();
@@ -44,23 +48,16 @@ export default class Application {
 
   constructor() {
     this.components = new Collection();
-    this.services = new Collection();
+    this.listeners = new ListenerService();
+    this.commands = new CommandService();
+    this.jobs = new JobService();
   }
 
   async load() {
     this.logger.debug('Bootstrapping Application component...');
 
-    // Initialize all services
-    await this._initServices();
-
     // Initialize all components
     await this._initComponents();
-
-    // Inject all subscriptions, components, and services and load them
-    for (const service of this.services.values()) {
-      this._inject(service);
-      await service.load?.();
-    }
 
     // Sort by load priority (0 = highest, 3 = lowest)
     const components = this.components.sort((a, b) => {
@@ -69,42 +66,27 @@ export default class Application {
       else return 0;
     });
 
-    for (let i = 0; i < components.length; i++) {
-      this._inject(components[i]);
-      components[i].load?.();
-    }
-
-    // Since the listener service needs the Discord component and it's not
-    // initialized, we'll have to create it
-    const listeners = new ListenerService();
+    this._inject(components);
+    for (let i = 0; i < components.length; i++)
+      await components[i].load?.();
 
     // Since the discord component needs to be launched on itself
     // We'll create a new instance of it and add subscriptions from components and services
     const discord = new Discord();
-
-    this._inject(discord);
+    this._inject([discord]);
     discord.init();
 
-    const services = this.services.toArray();
-    const serviceAndComponents = [...services, ...components];
-
-    for (let i = 0; i < serviceAndComponents.length; i++) {
-      const subscriptions = getSubscriptions(serviceAndComponents[i]);
-      subscriptions.forEach(sub => discord.subscribe(sub));
-    }
-
-    this.services.set('listeners', listeners);
     this.components.set('discord', discord);
+    this._inject([
+      this.listeners,
+      this.commands,
+      this.jobs
+    ]);
 
-    this._inject(listeners);
-    getSubscriptions(listeners).forEach(sub => discord.subscribe(sub));
     await discord.load();
   }
 
   dispose() {
-    for (const service of this.services.values())
-      service.dispose?.();
-
     for (const component of this.components.values())
       component.dispose?.();
 
@@ -116,27 +98,10 @@ export default class Application {
     if (ref === undefined)
       throw new TypeError(`Component or service ${reference.name} was not found in collection`);
 
-    if (this.services.has(ref))
-      return this.services.get(ref)!;
-    else if (this.components.has(ref))
+    if (this.components.has(ref))
       return this.components.get(ref)!;
     else
       throw new TypeError(`Reference "${ref}" was not implemented?`);
-  }
-
-  private async _initServices() {
-    this.logger.debug('Now initializing services...');
-
-    const files = (await utils.readdir(join(__dirname, 'services'))).filter(uwu => !uwu.includes('ListenerService'));
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const ctor: utils.Ctor<Service> = await import(file);
-      const service = ctor.default ? new ctor.default() : new ctor();
-
-      this.logger.log(`Found and initialized service ${service.name}`);
-      this.services.set(service.name, service);
-      this.references.set(service.constructor, service.name);
-    }
   }
 
   private async _initComponents() {
@@ -154,34 +119,40 @@ export default class Application {
     }
   }
 
-  private _inject(type: Service | Component) {
-    const components = getComponentsIn(type);
-    const services = getServicesIn(type);
+  private _inject(types: any[]) {
+    for (let i = 0; i < types.length; i++) {
+      const type = types[i];
 
-    components.forEach(component => {
-      Object.defineProperty(type, component.key, {
-        get: () => this.$ref(component.reference),
-        set: () => {
-          throw new SyntaxError('Cannot write new component to this property.');
-        },
+      const subscriptions = getSubscriptions(type);
+      const components = getComponentsIn(type);
+      const services = getServicesIn(type);
 
-        enumerable: true,
-        configurable: true
+      components.forEach(component => {
+        Object.defineProperty(type, component.key, {
+          get: () => this.$ref(component.reference),
+          set: () => {
+            throw new SyntaxError('Cannot write new component to this property.');
+          },
+
+          enumerable: true,
+          configurable: true
+        });
       });
-    });
 
-    services.forEach(s => {
-      Object.defineProperty(type, s.key, {
-        get: () => this.$ref(s.reference),
-        set: () => {
-          throw new SyntaxError('Cannot write new service to this property.');
-        },
+      services.forEach(s => {
+        Object.defineProperty(type, s.key, {
+          get: () => this.$ref(s.reference),
+          set: () => {
+            throw new SyntaxError('Cannot write new service to this property.');
+          },
 
-        enumerable: true,
-        configurable: true
+          enumerable: true,
+          configurable: true
+        });
       });
-    });
 
-    this.logger.debug(`[${type.name}] Populated ${utils.pluralize('component', components.length)} and ${utils.pluralize('service', services.length)}`);
+      const discord = this.components.get('discord') as Discord;
+      subscriptions.forEach(sub => discord.subscribe(sub));
+    }
   }
 }

@@ -20,8 +20,4 @@
  * SOFTWARE.
  */
 
-import { Service } from '..';
-
-export default class CommandService implements Service {
-  public name = 'commands';
-}
+export default class CommandService {}

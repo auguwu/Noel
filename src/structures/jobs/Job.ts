@@ -19,3 +19,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+import { validate } from 'node-cron';
+
+export default abstract class Job {
+  public expression: string;
+  public name: string;
+
+  constructor(name: string, expression: string) {
+    if (!validate(expression))
+      throw new TypeError(`Expression "${expression}" was invalid`);
+
+    this.expression = expression;
+    this.name = name;
+  }
+
+  abstract run(): Promise<void>;
+}

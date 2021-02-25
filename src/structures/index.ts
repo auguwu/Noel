@@ -25,7 +25,6 @@ export * from './decorators';
 
 // Export services
 export { default as CommandService } from './services/CommandService';
-export { default as JobService } from './services/JobService';
 
 // Export components
 export { default as Telegram } from './components/Telegram';

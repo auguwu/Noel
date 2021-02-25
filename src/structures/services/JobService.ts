@@ -20,9 +20,7 @@
  * SOFTWARE.
  */
 
-import { Service, NotInjectable } from '..';
+import { NotInjectable } from '../decorators';
 
 @NotInjectable
-export default class JobService implements Service {
-  public name = 'jobs';
-}
+export default class JobService {}
