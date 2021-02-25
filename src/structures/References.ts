@@ -20,30 +20,17 @@
  * SOFTWARE.
  */
 
-import 'reflect-metadata';
-import { Application, Logger } from './structures';
+import { Collection } from '@augu/collections';
 
-process.env.DEBUG = 'telegraf:*';
+export default class ReferenceMap<T extends { name: string }> {
+  private readonly references: Collection<any, string> = new Collection();
 
-async function main() {
-  const logger = Logger.get();
-  logger.log('Bootstrapping Noel...');
-
-  const app = new Application();
-
-  try {
-    await app.load();
-  } catch(ex) {
-    logger.error('Unable to run Application component\n', ex);
-    process.exit(1);
+  add(ref: T) {
+    if (ref.constructor !== null && ref.constructor !== Object)
+      this.references.set(ref.constructor, ref.name);
   }
 
-  process.on('SIGINT', () => {
-    logger.warn('Received `SIGINT`, disposing');
-    app.dispose();
-
-    process.exit(0);
-  });
+  resolve(name: T) {
+    return this.references.get(name);
+  }
 }
-
-main();

@@ -37,6 +37,7 @@ export default class Application {
   public components: Collection<string, Component>;
   public services: Collection<string, Service>;
 
+  private references = new Collection<any, string>();
   private logger = Logger.get();
   public priority = 3621; // fuck you
   public name = 'Noel';
@@ -110,20 +111,17 @@ export default class Application {
     this.logger.warn('Disposed all services and components');
   }
 
-  getService(reference: Service) {
-    const ref = this.services.find(ref => ref.name === reference.name);
-    if (ref === null)
-      throw new TypeError(`Service ${reference.name} was not found in collection`);
+  $ref(reference: Component | Service) {
+    const ref = this.references.get(reference);
+    if (ref === undefined)
+      throw new TypeError(`Component or service ${reference.name} was not found in collection`);
 
-    return ref!;
-  }
-
-  getComponent(reference: Component) {
-    const ref = this.components.find(ref => ref.name === reference.name);
-    if (ref === null)
-      throw new TypeError(`Component ${reference.name} was not found in collection`);
-
-    return ref!;
+    if (this.services.has(ref))
+      return this.services.get(ref)!;
+    else if (this.components.has(ref))
+      return this.components.get(ref)!;
+    else
+      throw new TypeError(`Reference "${ref}" was not implemented?`);
   }
 
   private async _initServices() {
@@ -137,6 +135,7 @@ export default class Application {
 
       this.logger.log(`Found and initialized service ${service.name}`);
       this.services.set(service.name, service);
+      this.references.set(service.constructor, service.name);
     }
   }
 
@@ -151,6 +150,7 @@ export default class Application {
 
       this.logger.log(`Found and initialized component ${component.name}`);
       this.components.set(component.name, component);
+      this.references.set(component.constructor, component.name);
     }
   }
 
@@ -160,7 +160,7 @@ export default class Application {
 
     components.forEach(component => {
       Object.defineProperty(type, component.key, {
-        get: () => this.getComponent(component.reference),
+        get: () => this.$ref(component.reference),
         set: () => {
           throw new SyntaxError('Cannot write new component to this property.');
         },
@@ -172,7 +172,7 @@ export default class Application {
 
     services.forEach(s => {
       Object.defineProperty(type, s.key, {
-        get: () => this.getService(s.reference),
+        get: () => this.$ref(s.reference),
         set: () => {
           throw new SyntaxError('Cannot write new service to this property.');
         },

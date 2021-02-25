@@ -40,7 +40,6 @@ export default class TelegramComponent implements ComponentImpl {
 
   async load() {
     this.logger.log('Creating new Telegram instance');
-    console.log(this.config);
     const token = this.config.getProperty('TELEGRAM_TOKEN');
     if (token === undefined) {
       this.logger.warn('Missing `TELEGRAM_TOKEN` env variable, this is optional though!');
@@ -49,13 +48,22 @@ export default class TelegramComponent implements ComponentImpl {
 
     if (!this.#telegram) {
       this.#telegram = new Telegraf(token);
-      this.#telegram.on('message', ctx => this.onMessage(ctx));
+      this.#telegram.on('new_chat_members', this.onNewChatMembers.bind(this));
+      this.#telegram.on('message', this.onMessage.bind(this));
 
-      this.logger.log('Initialized Telegram component.');
+      await this.#telegram.launch();
     }
   }
 
+  dispose() {
+    this.#telegram.stop('noel:disposed');
+  }
+
   private onMessage(context: MatchedContext) {
-    console.log(context);
+    console.trace('message', context);
+  }
+
+  private onNewChatMembers(context: MatchedContext) {
+    console.trace('new member(s)', context);
   }
 }

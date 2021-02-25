@@ -48,7 +48,7 @@ export default class DiscordComponent implements ComponentImpl {
     });
 
     this.#client.on('ready', () => {
-      this.logger.log(`[Discord] Connected as ${this.#client.user.id}`);
+      this.logger.log(`[Discord] Connected as ${this.#client.user.tag}`);
       this.#client.setStatus('online', {
         name: 'who\'s cuter!',
         type: 5
