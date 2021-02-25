@@ -83,9 +83,16 @@ export default class Application implements Component {
       await service.load?.();
     }
 
-    for (const component of this.components.values()) {
-      this._inject(component);
-      await component.load?.();
+    // Sort by load priority (0 = highest, 3 = lowest)
+    const components = this.components.sort((a, b) => {
+      if (a.priority > b.priority) return 1;
+      else if (a.priority < b.priority) return -1;
+      else return 0;
+    });
+
+    for (let i = 0; i < components.length; i++) {
+      this._inject(components[i]);
+      components[i].load?.();
     }
   }
 

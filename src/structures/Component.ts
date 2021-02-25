@@ -35,6 +35,11 @@ interface Component {
   load?(): Promise<void>;
 
   /**
+   * Priority to inject and create the component in
+   */
+  priority: number;
+
+  /**
    * Name of the component for easy searching on the `@Component` decorator
    */
   name: string;
