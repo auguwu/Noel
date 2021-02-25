@@ -33,7 +33,7 @@ export { default as Discord } from './components/Discord';
 export { default as Config } from './components/Config';
 
 // Export stuff from this directory
+export { default as ComponentImpl } from './Component';
 export { default as Application } from './Application';
-export { default as Component } from './Component';
 export { default as Service } from './Service';
 export { default as Logger } from './Logger';

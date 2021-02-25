@@ -37,9 +37,10 @@ export default class Logger {
     const frame = stacktrace.parse(error)[1];
     const filename = frame.getFileName().split(sep).filter(r => !path.includes(r));
 
+    const nodeEnv = (process.env.NODE_ENV ??= 'development');
     return new Loggaby({
       format: `{grey}[{level.color}{level.name}{grey} | {magenta}${name}:${filename.join('/')}{magenta}{grey} | {cyan}{time}{cyan}{grey}] `,
-      debug: process.env.NODE_ENV === 'development'
+      debug: nodeEnv === 'development'
     });
   }
 }
