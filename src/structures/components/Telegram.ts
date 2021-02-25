@@ -38,6 +38,10 @@ export default class TelegramComponent implements ComponentImpl {
 
   #telegram!: Telegraf;
 
+  get client() {
+    return this.#telegram;
+  }
+
   async load() {
     this.logger.log('Creating new Telegram instance');
     const token = this.config.getProperty('TELEGRAM_TOKEN');
