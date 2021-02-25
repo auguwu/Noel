@@ -24,8 +24,8 @@ import { EmbedBuilder, MessageCreateEvent } from 'wumpcord';
 import { Component, Inject, Subscribe } from '@ayanaware/bento';
 import { Collection } from '@augu/collections';
 import { Ctor, readdir } from '@augu/utils';
-import type Discord from '../../components/Discord';
-import type Config from '../../components/Config';
+import Discord from '../../components/Discord';
+import Config from '../../components/Config';
 import { Color } from '../../Constants';
 import { join } from 'path';
 import Logger from '@ayanaware/logger';
@@ -68,18 +68,18 @@ export default class CommandManager implements Component {
     )[0];
   }
 
-  @Subscribe(CommandManager, 'message')
+  @Subscribe(Discord, 'message')
   async onMessage(event: MessageCreateEvent) {
     // Ignore bots
     if (event.message.author.bot) return;
 
     // Check if we were just mentioned
-    if ((new RegExp(`^<@!?${this.discord.user.id}>$`)).test(event.message.content))
-      return event.channel.send(`Hello, **${event.message.author.id}**! Use \`${this.config.getProperty('PREFIX', 'noel ')}help\` for a list of commands.`);
+    if ((new RegExp(`^<@!?${this.discord.client.user.id}>$`)).test(event.message.content))
+      return event.channel.send(`Hello, **${event.message.author.id}**! Use \`${this.config.getProperty('PREFIX')}help\` for a list of commands.`);
 
     // Check for prefixes
-    const mention = new RegExp(`^<@!?${this.discord.user.id}> `).exec(event.message.content);
-    const _prefix = this.config.getProperty('PREFIX', 'noel ');
+    const mention = new RegExp(`^<@!?${this.discord.client.user.id}> `).exec(event.message.content);
+    const _prefix = this.config.getProperty('PREFIX');
     const prefixes = [_prefix].filter(Boolean);
 
     if (mention !== null)
@@ -103,7 +103,7 @@ export default class CommandManager implements Component {
 
     if (!command) return;
 
-    const owners = this.config.getProperty('OWNERS', []);
+    const owners = this.config.getProperty('OWNERS');
     if (command.category === CommandCategory.Cutie && !owners.includes(event.message.author.id))
       return event.channel.send('Well, you found a command that the owners can execute.');
 
@@ -121,7 +121,7 @@ export default class CommandManager implements Component {
         .setTitle('Uh, oh... something broke... ;^;')
         .setDescription([
           `Looks like command **${command.name}** has failed to execute...`,
-          `Report this to ${owners.map(owner => this.discord.users.get(owner)?.tag ?? 'Unknown User#0000').join(', ')}!`,
+          `Report this to ${owners.map(owner => this.discord.client.users.get(owner)?.tag ?? 'Unknown User#0000').join(', ')}!`,
           '```js',
           `${ex.name}: ${ex.message}`,
           ...(ex.stack?.split('\n').slice(0) ?? []),

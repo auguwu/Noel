@@ -59,4 +59,12 @@ export default class JobManager implements Component {
       }, { timezone: 'America/Phoenix' });
     }
   }
+
+  async onUnload() {
+    logger.warn('Unloading jobs...');
+    this.jobs.forEach(job => job.destroy());
+    this.jobs.clear();
+
+    logger.info('Jobs has been cleared.');
+  }
 }
