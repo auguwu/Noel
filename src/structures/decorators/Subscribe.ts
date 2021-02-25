@@ -19,3 +19,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+import type { WebSocketClientEvents } from 'wumpcord/build/gateway/WebSocketClient';
+import type Subscription from '../interfaces/Subscription';
+import { MetadataKeys } from '../interfaces/MetaKeys';
+
+export function getSubscriptions(target: any): Subscription[] {
+  return Reflect.getMetadata(MetadataKeys.Subscription, target) ?? [];
+}
+
+/**
+ * Decorator to mark a method as a subscription, currently
+ * this is supported for the [Discord] component but might be supported
+ * in more components soon™️
+ *
+ * @param event The event to listen for
+ */
+export default function Subscribe(event: keyof WebSocketClientEvents): MethodDecorator {
+  return (target: any, _, descriptor: TypedPropertyDescriptor<any>) => {
+    if (target.prototype === undefined)
+      target = target.constructor;
+
+    const subscriptions: Subscription[] = Reflect.getMetadata(MetadataKeys.Subscription, target) ?? [];
+    subscriptions.push({
+      run: descriptor.value!,
+      event
+    });
+
+    Reflect.defineMetadata(MetadataKeys.Subscription, target, subscriptions);
+  };
+}

@@ -19,3 +19,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+import { isNotInjectable } from './NotInjectable';
+import type { Component } from '..';
+import { MetadataKeys } from '../interfaces/MetaKeys';
+
+interface ComponentReflectReference {
+  reference: Component;
+  key: string;
+}
+
+/**
+ * Component decorator to inject into a property, use `@Service` to inject
+ * a service into a property.
+ */
+const _Component: PropertyDecorator = (target: any, property) => {
+  const reference = Reflect.getMetadata('design:type', target, property);
+
+  if (reference === undefined)
+    throw new TypeError('Unable to infer type for reference');
+
+  if (!isNotInjectable(reference))
+    throw new TypeError('Inferred reference is not injectable');
+
+  const references: ComponentReflectReference[] = Reflect.getMetadata(MetadataKeys.Component, target) ?? [];
+  references.push({ key: String(property), reference });
+
+  Reflect.defineMetadata(MetadataKeys.Component, target, references);
+};
+
+/**
+ * Returns the referenced components in the specified [target]
+ */
+export function getComponentsIn(target: any): ComponentReflectReference[] {
+  return Reflect.getMetadata(MetadataKeys.Component, target) ?? [];
+}
+
+export default _Component;
