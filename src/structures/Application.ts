@@ -70,20 +70,11 @@ export default class Application {
     for (let i = 0; i < components.length; i++)
       await components[i].load?.();
 
-    // Since the discord component needs to be launched on itself
-    // We'll create a new instance of it and add subscriptions from components and services
-    const discord = new Discord();
-    this._inject([discord]);
-    discord.init();
-
-    this.components.set('discord', discord);
     this._inject([
       this.listeners,
       this.commands,
       this.jobs
     ]);
-
-    await discord.load();
   }
 
   dispose() {
@@ -96,7 +87,7 @@ export default class Application {
   $ref(reference: Component | Service) {
     const ref = this.references.get(reference);
     if (ref === undefined)
-      throw new TypeError(`Component or service ${reference.name} was not found in collection`);
+      throw new TypeError(`Component ${reference.name} was not found in collection`);
 
     if (this.components.has(ref))
       return this.components.get(ref)!;
@@ -107,7 +98,7 @@ export default class Application {
   private async _initComponents() {
     this.logger.debug('Now initializing components...');
 
-    const files = (await utils.readdir(join(__dirname, 'components'))).filter(uwu => !uwu.includes('Discord'));
+    const files = await utils.readdir(join(__dirname, 'components'));
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const ctor: utils.Ctor<Component> = await import(file);

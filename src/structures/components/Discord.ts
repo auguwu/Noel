@@ -28,7 +28,7 @@ import { Client } from 'wumpcord';
 import Logger from '../Logger';
 
 export default class DiscordComponent implements ComponentImpl {
-  public priority = 3;
+  public priority = 1;
   private logger = Logger.get();
   public name = 'discord';
 
@@ -61,6 +61,7 @@ export default class DiscordComponent implements ComponentImpl {
   }
 
   async load() {
+    this.init();
     return this.#client.connect();
   }
 
