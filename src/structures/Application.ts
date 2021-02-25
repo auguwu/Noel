@@ -22,6 +22,7 @@
 
 import { NotInjectable, getSubscriptions, getServicesIn, getComponentsIn } from './decorators';
 import type { ComponentImpl as Component, Service } from '.';
+import ListenerService from './services/ListenerService';
 import { Collection } from '@augu/collections';
 import * as utils from '@augu/utils';
 import { join } from 'path';
@@ -72,12 +73,17 @@ export default class Application {
       components[i].load?.();
     }
 
+    // Since the listener service needs the Discord component and it's not
+    // initialized, we'll have to create it
+    const listeners = new ListenerService();
+
     // Since the discord component needs to be launched on itself
     // We'll create a new instance of it and add subscriptions from components and services
     const discord = new Discord();
+
+    this._inject(discord);
     discord.init();
 
-    this.components.set('discord', discord);
     const services = this.services.toArray();
     const serviceAndComponents = [...services, ...components];
 
@@ -86,10 +92,15 @@ export default class Application {
       subscriptions.forEach(sub => discord.subscribe(sub));
     }
 
+    this.services.set('listeners', listeners);
+    this.components.set('discord', discord);
+
+    this._inject(listeners);
+    getSubscriptions(listeners).forEach(sub => discord.subscribe(sub));
     await discord.load();
   }
 
-  async dispose() {
+  dispose() {
     for (const service of this.services.values())
       service.dispose?.();
 
@@ -118,7 +129,7 @@ export default class Application {
   private async _initServices() {
     this.logger.debug('Now initializing services...');
 
-    const files = await utils.readdir(join(__dirname, 'services'));
+    const files = (await utils.readdir(join(__dirname, 'services'))).filter(uwu => !uwu.includes('ListenerService'));
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const ctor: utils.Ctor<Service> = await import(file);
@@ -171,6 +182,6 @@ export default class Application {
       });
     });
 
-    this.logger.debug(`[${type.name}] Populated ${components.length} ${utils.pluralize('component', components.length)} and ${services.length} ${utils.pluralize('service', services.length)}`);
+    this.logger.debug(`[${type.name}] Populated ${utils.pluralize('component', components.length)} and ${utils.pluralize('service', services.length)}`);
   }
 }

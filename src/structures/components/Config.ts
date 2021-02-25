@@ -21,15 +21,17 @@
  */
 
 import { parse as dotenv, SchemaOptions } from '@augu/dotenv';
-import { ComponentImpl } from '..';
+import type { ComponentImpl } from '..';
 import { join } from 'path';
 
 interface Configuration {
   BIRTHDAY_CHANNEL_ID: string;
+  WELCOMER_CHANNEL_ID: string;
   POLLS_CHANNEL_ID: string;
   TELEGRAM_TOKEN: string;
   WAH_CHANNEL_ID: string;
   DISCORD_TOKEN: string;
+  AUTOROLES: string[];
   NODE_ENV: 'development' | 'production';
   PREFIXES: string[];
   OWNERS: string[];
@@ -37,9 +39,14 @@ interface Configuration {
 
 const schema: { [P in keyof Configuration]: string | SchemaOptions } = {
   BIRTHDAY_CHANNEL_ID: 'string',
+  WELCOMER_CHANNEL_ID: 'string',
   POLLS_CHANNEL_ID: 'string',
   TELEGRAM_TOKEN: 'string',
   WAH_CHANNEL_ID: 'string',
+  AUTOROLES: {
+    type: 'array',
+    default: []
+  },
   OWNERS: {
     type: 'array',
     default: []

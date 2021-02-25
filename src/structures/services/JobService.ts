@@ -19,3 +19,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+import { Service, NotInjectable } from '..';
+
+@NotInjectable
+export default class JobService implements Service {
+  public name = 'jobs';
+}

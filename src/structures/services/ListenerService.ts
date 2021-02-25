@@ -1,0 +1,81 @@
+/**
+ * Copyright (c) 2020-2021 August
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+import { Component, Config, Discord, Logger, NotInjectable, Service } from '..';
+import { Color, Emojis } from '../../Constants';
+import { Subscribe } from '../decorators';
+
+import {
+  GuildMemberRemoveEvent,
+  EmbedBuilder,
+  TextChannel,
+  GuildMemberUpdateEvent
+} from 'wumpcord';
+
+@NotInjectable
+export default class ListenerService implements Service {
+  private logger = Logger.get();
+  public name = 'listeners';
+
+  @Component private config!: Config;
+  @Component private discord!: Discord;
+
+  @Subscribe('debug')
+  onDebug(message: string) {
+    this.logger.debug(message);
+  }
+
+  @Subscribe('guildMemberRemove')
+  onGuildMemberRemove(event: GuildMemberRemoveEvent) {
+    const embed = new EmbedBuilder()
+      .setDescription(`User ${event.member!.user.tag} has left... ;~;`)
+      .setColor(Color)
+      .build();
+
+    const welcomer = this.config.getProperty('WELCOMER_CHANNEL_ID');
+    if (!welcomer) return;
+
+    const channel = this.discord.client.channels.get<TextChannel>(welcomer);
+    return channel?.send({
+      embed
+    });
+  }
+
+  @Subscribe('guildMemberUpdate')
+  onGuildMemberUpdate(event: GuildMemberUpdateEvent) {
+    const wasPending = event.old?.pending && !event.member.pending;
+    if (wasPending) {
+      const embed = new EmbedBuilder()
+        .setDescription(`User **${event.member.user.tag}** has joined us! ${Emojis.GayHeart}`)
+        .setColor(Color)
+        .build();
+
+      const welcomer = this.config.getProperty('WELCOMER_CHANNEL_ID');
+      if (!welcomer) return;
+
+      const channel = this.discord.client.channels.get<TextChannel>(welcomer);
+      return channel?.send({
+        embed
+      });
+    }
+  }
+}

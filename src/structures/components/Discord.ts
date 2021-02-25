@@ -20,10 +20,12 @@
  * SOFTWARE.
  */
 
-import { Component, ComponentImpl, Logger } from '..';
-import type ConfigurationComponent from './Config';
+import ConfigurationComponent from './Config';
+import type ComponentImpl from '../Component';
 import type Subscription from '../interfaces/Subscription';
+import { Component } from '../decorators';
 import { Client } from 'wumpcord';
+import Logger from '../Logger';
 
 export default class DiscordComponent implements ComponentImpl {
   public priority = 3;
@@ -44,14 +46,30 @@ export default class DiscordComponent implements ComponentImpl {
         intents: ['guilds', 'guildMessages', 'guildMessageReactions', 'guildMembers']
       }
     });
+
+    this.#client.on('ready', () => {
+      this.logger.log(`[Discord] Connected as ${this.#client.user.id}`);
+      this.#client.setStatus('online', {
+        name: 'who\'s cuter!',
+        type: 5
+      }); // "Competing in who's cuter!"
+    });
+  }
+
+  get client() {
+    return this.#client;
   }
 
   async load() {
     return this.#client.connect();
   }
 
+  dispose() {
+    return this.#client.disconnect(false);
+  }
+
   subscribe(subscription: Subscription) {
-    this.logger.debug(`Added subscription ${subscription.event}...`);
+    this.logger.debug(`Added subscription ${subscription.event}!`);
     this.#client.on(subscription.event, async (...args: any[]) => {
       try {
         await subscription.run(...args);

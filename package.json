@@ -21,6 +21,7 @@
     "reflect-metadata": "0.1.13",
     "stack-trace": "0.0.10",
     "telegraf": "4.1.1",
+    "typegram": "3.1.10",
     "wumpcord": "1.0.9"
   },
   "devDependencies": {

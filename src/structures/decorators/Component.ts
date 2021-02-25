@@ -20,8 +20,8 @@
  * SOFTWARE.
  */
 
+import type { ComponentImpl as Component } from '..';
 import { isNotInjectable } from './NotInjectable';
-import type { Component } from '..';
 import { MetadataKeys } from '../interfaces/MetaKeys';
 
 interface ComponentReflectReference {
@@ -45,7 +45,7 @@ const _Component: PropertyDecorator = (target: any, property) => {
   const references: ComponentReflectReference[] = Reflect.getMetadata(MetadataKeys.Component, target) ?? [];
   references.push({ key: String(property), reference });
 
-  Reflect.defineMetadata(MetadataKeys.Component, target, references);
+  Reflect.defineMetadata(MetadataKeys.Component, references, target);
 };
 
 /**
