@@ -26,6 +26,8 @@ import { Component } from '../decorators';
 import Discord from './Discord';
 import Config from './Config';
 import Logger from '../Logger';
+import { EmbedBuilder, TextChannel } from 'wumpcord';
+import { Color } from '../../Constants';
 
 type InferContext<T> = T extends MiddlewareFn<infer P> ? P : never;
 type MatchedContext = InferContext<Parameters<Composer<Context>['on']>[1]> & { update: any };
@@ -92,11 +94,39 @@ export default class TelegramComponent implements ComponentImpl {
     console.trace('left member', context);
   }
 
-  private onMessageRelay(context: NoelContext) {
+  private async onMessageRelay(context: NoelContext) {
     const update: any = context.update;
+    console.log(update);
 
-    // Don't handle relays when the bot isn't initialized
-    if (!context.discord.client.ready)
+    const botIcon = update.message.from.is_bot ? ' <:botIcon:814566565604360272>' : '';
+    let text = '';
+
+    if (update.message.reply_to_message !== undefined) {
+      const message = update.message.reply_to_message;
+      text = `> Replying to **${message.from.first_name}${message.from.last_name ? ` ${message.from.last_name}` : ''}**\n> ${message.text}\n\n${update.message.text}`;
+    } else {
+      text = update.message.text;
+    }
+
+    const embed = new EmbedBuilder()
+      .setColor(Color)
+      .setAuthor(`${update.message.from.first_name}${update.message.from.last_name ? ` ${update.message.from.last_name}` : ''} (@${update.message.from.username})${botIcon}`)
+      .setDescription(text)
+      .build();
+
+    const tgRelayChannelId = this.config.getProperty('TELEGRAM_RELAY_CHANNEL_ID');
+    if (!tgRelayChannelId)
       return;
+
+    const channel = context.discord.client.channels.get<TextChannel>(tgRelayChannelId);
+    if (!channel)
+      return;
+
+    if (channel.type !== 'text')
+      return;
+
+    await channel.send({
+      embed
+    });
   }
 }
