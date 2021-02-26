@@ -20,17 +20,16 @@
  * SOFTWARE.
  */
 
-import { Telegraf, Context, Composer, MiddlewareFn } from 'telegraf';
+/* eslint-disable camelcase */
+
+import { EmbedBuilder, TextChannel } from 'wumpcord';
+import { Telegraf, Context } from 'telegraf';
+import { Color, Emojis } from '../../Constants';
 import ComponentImpl from '../Component';
 import { Component } from '../decorators';
 import Discord from './Discord';
 import Config from './Config';
 import Logger from '../Logger';
-import { EmbedBuilder, TextChannel } from 'wumpcord';
-import { Color } from '../../Constants';
-
-type InferContext<T> = T extends MiddlewareFn<infer P> ? P : never;
-type MatchedContext = InferContext<Parameters<Composer<Context>['on']>[1]> & { update: any };
 
 interface NoelContext extends Context {
   discord: Discord;
@@ -63,13 +62,16 @@ export default class TelegramComponent implements ComponentImpl {
 
       this.#telegram.start(Telegraf.reply('This is a private instance for @uwunoel (Telegram group), please refrain from using this instance.'));
       this.#telegram.help(Telegraf.reply('Go help yourself, cutie~ <3'));
-      this.#telegram.on('new_chat_members', this.onNewChatMembers.bind(this));
-      this.#telegram.on('left_chat_member', this.onLeftChatMember.bind(this));
+
+      // Apply ctx to all middlewares
       this.#telegram.use((ctx, next) => {
         ctx.discord = this.discord;
         return next();
       });
 
+      this.#telegram.on('new_chat_members', this.onNewChatMembers.bind(this));
+      this.#telegram.on('left_chat_member', this.onLeftChatMember.bind(this));
+      this.#telegram.on('poll', this.onNewPoll.bind(this));
       this.#telegram.use((ctx, next) => {
         this.onMessageRelay(ctx);
         return next();
@@ -86,12 +88,77 @@ export default class TelegramComponent implements ComponentImpl {
     this.#telegram.stop('noel:disposed');
   }
 
-  private onNewChatMembers(context: MatchedContext) {
-    console.trace('new member(s)', context);
+  private async onNewPoll(context: NoelContext) {
+    const update: any = context.update;
+    console.log(update.message.poll);
+
+    const tgRelayChannelId = this.config.getProperty('TELEGRAM_RELAY_CHANNEL_ID');
+    if (!tgRelayChannelId)
+      return;
+
+    const channel = context.discord.client.channels.get<TextChannel>(tgRelayChannelId);
+    if (!channel)
+      return;
+
+    if (channel.type !== 'text')
+      return;
+
+    const from = update.message.from;
+    const data = update.message.poll;
+
+    const embed = new EmbedBuilder()
+      .setTitle(`${data.question}${data.is_anoymous ? ' (Anonymous)' : data.is_closed ? ' (CLOSED)' : ''}`)
+      .setDescription(data.options.map((r: any) => `• **${r.text}**`).join('\n'))
+      .setColor(Color);
+
+    return channel.send({
+      content: `**${from.first_name}${from.last_name ? ` ${from.last_name}` : ''}** (@${from.username}) has created a poll!`,
+      embed: embed.build()
+    });
   }
 
-  private onLeftChatMember(context: MatchedContext) {
-    console.trace('left member', context);
+  private onNewChatMembers(context: NoelContext) {
+    const update: any = context.update;
+    const tgRelayChannelId = this.config.getProperty('TELEGRAM_RELAY_CHANNEL_ID');
+    if (!tgRelayChannelId)
+      return;
+
+    const channel = context.discord.client.channels.get<TextChannel>(tgRelayChannelId);
+    if (!channel)
+      return;
+
+    if (channel.type !== 'text')
+      return;
+
+    // only one new person joined
+    if (update.message.new_chat_members.length === 1) {
+      const member = update.message.new_chat_members[0];
+      return channel.send(`${Emojis.TransHeart} **${member.first_name}${member.last_name ? ` ${member.last_name}` : ''}** (@${member.username}) has joined from the Telegram side!`);
+    } else {
+      const members = update
+        .message
+        .new_chat_members
+        .map((r: any) => `${r.first_name}${r.last_name ? ` ${r.last_name}` : ''} (@${r.username})`);
+
+      return channel.send(`${Emojis.TransHeart} ${update.message.new_chat_members.length} members has joined!\n\`\`\`prolog\n${members.join('\n')}\`\`\``);
+    }
+  }
+
+  private onLeftChatMember(context: NoelContext) {
+    const update: any = context.update;
+    const tgRelayChannelId = this.config.getProperty('TELEGRAM_RELAY_CHANNEL_ID');
+    if (!tgRelayChannelId)
+      return;
+
+    const channel = context.discord.client.channels.get<TextChannel>(tgRelayChannelId);
+    if (!channel)
+      return;
+
+    if (channel.type !== 'text')
+      return;
+
+    const member = update.message.left_chat_member;
+    return channel.send(`:sob: **${member.first_name}${member.last_name ? ` ${member.last_name}` : ''}** (@${member.username}) has left from the Telegram side.`);
   }
 
   private async onMessageRelay(context: NoelContext) {
@@ -103,7 +170,7 @@ export default class TelegramComponent implements ComponentImpl {
 
     if (update.message.reply_to_message !== undefined) {
       const message = update.message.reply_to_message;
-      text = `> Replying to **${message.from.first_name}${message.from.last_name ? ` ${message.from.last_name}` : ''}**\n> ${message.text}\n\n${update.message.text}`;
+      text = `> Replying to **${message.from.first_name}${message.from.last_name ? ` ${message.from.last_name}` : ''}**\n> ${message.caption ? message.caption : message.text}\n\n${update.message.text}`;
     } else {
       text = update.message.text;
     }
@@ -111,8 +178,7 @@ export default class TelegramComponent implements ComponentImpl {
     const embed = new EmbedBuilder()
       .setColor(Color)
       .setAuthor(`${update.message.from.first_name}${update.message.from.last_name ? ` ${update.message.from.last_name}` : ''} (@${update.message.from.username})${botIcon}`)
-      .setDescription(text)
-      .build();
+      .setDescription(text);
 
     const tgRelayChannelId = this.config.getProperty('TELEGRAM_RELAY_CHANNEL_ID');
     if (!tgRelayChannelId)
@@ -126,7 +192,7 @@ export default class TelegramComponent implements ComponentImpl {
       return;
 
     await channel.send({
-      embed
+      embed: embed.build()
     });
   }
 }

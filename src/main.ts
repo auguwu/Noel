@@ -23,8 +23,6 @@
 import 'reflect-metadata';
 import { Application, Logger } from './structures';
 
-process.env.DEBUG = 'telegraf:*';
-
 async function main() {
   const logger = Logger.get();
   logger.log('Bootstrapping Noel...');
