@@ -20,20 +20,17 @@
  * SOFTWARE.
  */
 
-// Export directories that jave a `index.ts` file
-export * from './decorators';
+import { Job } from '../structures';
 
-// Export services
-export { default as CommandService } from './services/CommandService';
+export default class CuteJob extends Job {
+  constructor() {
+    super(
+      'cuties',
+      '* * * * *'
+    );
+  }
 
-// Export components
-export { default as Telegram } from './components/Telegram';
-export { default as Discord } from './components/Discord';
-export { default as Config } from './components/Config';
-
-// Export stuff from this directory
-export { default as ComponentImpl } from './Component';
-export { default as Application } from './Application';
-export { default as Service } from './Service';
-export { default as Logger } from './Logger';
-export { default as Job } from './jobs/Job';
+  async run() {
+    console.log('your all cute');
+  }
+}

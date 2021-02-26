@@ -75,6 +75,8 @@ export default class Application {
       this.commands,
       this.jobs
     ]);
+
+    await this.jobs.load();
   }
 
   dispose() {

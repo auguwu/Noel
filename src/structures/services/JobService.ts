@@ -20,7 +20,53 @@
  * SOFTWARE.
  */
 
+import { schedule, ScheduledTask } from 'node-cron';
 import { NotInjectable } from '../decorators';
+import { Ctor, readdir } from '@augu/utils';
+import { Logger } from '..';
+import { Queue } from '@augu/collections';
+import { join } from 'path';
+import Job from '../jobs/Job';
+
+interface IJob extends Pick<Job, 'name' | 'expression'> {
+  task: ScheduledTask;
+}
 
 @NotInjectable
-export default class JobService {}
+export default class JobService {
+  private jobs: Queue<IJob> = new Queue();
+  private logger = Logger.get();
+
+  async load() {
+    this.logger.log('Loading jobs...');
+
+    const files = await readdir(join(__dirname, '..', '..', 'jobs'));
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const ctor: Ctor<Job> = await import(file);
+      const job = ctor.default ? new ctor.default() : new ctor();
+
+      const scheduler = schedule(job.expression, async() => {
+        try {
+          await job.run();
+        } catch(ex) {
+          this.logger.error(`Unable to run job ${job.name}:`, ex);
+        }
+      }); // because yes uwu
+
+      scheduler.start();
+
+      this.logger.log(`Initialized job ${job.name}!`);
+      this.jobs.push({
+        expression: job.expression,
+        task: scheduler,
+        name: job.name
+      });
+    }
+  }
+
+  dispose() {
+    // @ts-ignore i am bad yes
+    this.jobs.items.forEach(job => job.task.destroy());
+  }
+}
