@@ -26,12 +26,14 @@ import { join } from 'path';
 
 interface Configuration {
   TELEGRAM_RELAY_CHANNEL_ID: string;
+  TELEGRAM_RELAY_CHANNELS: string[];
   DATABASE_CONNECTION_URL: string;
   BIRTHDAY_CHANNEL_ID: string;
   WELCOMER_CHANNEL_ID: string;
   POLLS_CHANNEL_ID: string;
   TELEGRAM_TOKEN: string;
   WAH_CHANNEL_ID: string;
+  STAFF_ROLE_ID: string;
   DISCORD_TOKEN: string;
   AUTOROLES: string[];
   NODE_ENV: 'development' | 'production';
@@ -47,6 +49,11 @@ const schema: { [P in keyof Configuration]: string | SchemaOptions } = {
   POLLS_CHANNEL_ID: 'string',
   TELEGRAM_TOKEN: 'string',
   WAH_CHANNEL_ID: 'string',
+  STAFF_ROLE_ID: 'string',
+  TELEGRAM_RELAY_CHANNELS: {
+    type: 'array',
+    default: []
+  },
   AUTOROLES: {
     type: 'array',
     default: []

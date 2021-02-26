@@ -20,13 +20,5 @@
  * SOFTWARE.
  */
 
-import type { Message, TextChannel } from 'wumpcord';
-
-export default abstract class CommandCheck {
-  public name: string;
-  constructor(name: string) {
-    this.name = name;
-  }
-
-  abstract check(msg: Message<TextChannel>): boolean;
-}
+export { default as OwnerOnlyCheck } from './OwnerOnly';
+export { default as StaffOnlyCheck } from './StaffOnly';

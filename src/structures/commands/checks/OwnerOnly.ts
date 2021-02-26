@@ -21,12 +21,19 @@
  */
 
 import type { Message, TextChannel } from 'wumpcord';
+import { Component } from '../../decorators';
+import Config from '../../components/Config';
+import Check from '../Check';
 
-export default abstract class CommandCheck {
-  public name: string;
-  constructor(name: string) {
-    this.name = name;
+export default class OwnerOnlyCheck extends Check {
+  @Component private config!: Config;
+
+  constructor() {
+    super('ownerOnly');
   }
 
-  abstract check(msg: Message<TextChannel>): boolean;
+  check(msg: Message<TextChannel>) {
+    const owners = this.config.getProperty('OWNERS') ?? [];
+    return owners.includes(msg.author.id);
+  }
 }

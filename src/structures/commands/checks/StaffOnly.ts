@@ -21,12 +21,22 @@
  */
 
 import type { Message, TextChannel } from 'wumpcord';
+import { Component } from '../../decorators';
+import Config from '../../components/Config';
+import Check from '../Check';
 
-export default abstract class CommandCheck {
-  public name: string;
-  constructor(name: string) {
-    this.name = name;
+export default class StaffOnlyCheck extends Check {
+  @Component private config!: Config;
+
+  constructor() {
+    super('staffOnly');
   }
 
-  abstract check(msg: Message<TextChannel>): boolean;
+  check(msg: Message<TextChannel>) {
+    const staffRole = this.config.getProperty('STAFF_ROLE_ID');
+    if (!staffRole)
+      return false;
+
+    return msg.member?.roles.filter(role => role.id === staffRole).length > 0;
+  }
 }
