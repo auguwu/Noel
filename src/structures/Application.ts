@@ -20,8 +20,8 @@
  * SOFTWARE.
  */
 
-import { NotInjectable, getSubscriptions, getServicesIn, getComponentsIn } from './decorators';
-import type { ComponentImpl as Component, Service } from '.';
+import { NotInjectable, getSubscriptions, getComponentsIn } from './decorators';
+import type { ComponentImpl as Component } from '.';
 import ListenerService from './services/ListenerService';
 import { Collection } from '@augu/collections';
 import * as utils from '@augu/utils';
@@ -86,7 +86,7 @@ export default class Application {
     this.logger.warn('Disposed all services and components');
   }
 
-  $ref(reference: Component | Service) {
+  $ref(reference: Component) {
     const ref = this.references.get(reference);
     if (ref === undefined)
       throw new TypeError(`Component ${reference.name} was not found in collection`);
@@ -118,25 +118,12 @@ export default class Application {
 
       const subscriptions = getSubscriptions(type);
       const components = getComponentsIn(type);
-      const services = getServicesIn(type);
 
       components.forEach(component => {
         Object.defineProperty(type, component.key, {
           get: () => this.$ref(component.reference),
           set: () => {
             throw new SyntaxError('Cannot write new component to this property.');
-          },
-
-          enumerable: true,
-          configurable: true
-        });
-      });
-
-      services.forEach(s => {
-        Object.defineProperty(type, s.key, {
-          get: () => this.$ref(s.reference),
-          set: () => {
-            throw new SyntaxError('Cannot write new service to this property.');
           },
 
           enumerable: true,

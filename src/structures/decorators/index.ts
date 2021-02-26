@@ -23,4 +23,3 @@
 export { default as NotInjectable, isNotInjectable } from './NotInjectable';
 export { default as Subscribe, getSubscriptions } from './Subscribe';
 export { default as Component, getComponentsIn } from './Component';
-export { default as Service, getServicesIn } from './Service';

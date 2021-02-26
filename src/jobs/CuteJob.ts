@@ -26,7 +26,7 @@ export default class CuteJob extends Job {
   constructor() {
     super(
       'cuties',
-      '* * * * *'
+      '* * * * *' // runs every minute
     );
   }
 

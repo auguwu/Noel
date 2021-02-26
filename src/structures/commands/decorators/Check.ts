@@ -20,39 +20,16 @@
  * SOFTWARE.
  */
 
-import { isNotInjectable } from './NotInjectable';
-import type { Service } from '..';
-import { MetadataKeys } from '../interfaces/MetaKeys';
+import MetadataKeys from './internal/MetadataKeys';
 
-interface ServiceReflectReference {
-  reference: Service;
-  key: string;
+interface CommandCheckMetadata {
+  check: string;
+  ref: any; // command reference
 }
 
 /**
- * Service decorator to inject into a property, use `@Component` to inject
- * a component into a property.
+ * returns the command checks (if any) in a specific [target]
+ * @param target the target class
  */
-const _Service: PropertyDecorator = (target: any, property) => {
-  const reference = Reflect.getMetadata('design:type', target, property);
-
-  if (reference === undefined)
-    throw new TypeError('Unable to infer type for reference');
-
-  if (!isNotInjectable(reference))
-    throw new TypeError('Inferred reference is not injectable');
-
-  const references: ServiceReflectReference[] = Reflect.getMetadata(MetadataKeys.Service, target) ?? [];
-  references.push({ key: String(property), reference });
-
-  Reflect.defineMetadata(MetadataKeys.Service, target, references);
-};
-
-/**
-* Returns the referenced services in the specified [target]
-*/
-export function getServicesIn(target: any): ServiceReflectReference[] {
-  return Reflect.getMetadata(MetadataKeys.Service, target) ?? [];
-}
-
-export default _Service;
+export const getCommandChecksIn = (target: any): CommandCheckMetadata[] =>
+  Reflect.getMetadata(MetadataKeys.Check, target) ?? [];
