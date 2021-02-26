@@ -37,15 +37,12 @@ export function getSubscriptions(target: any): Subscription[] {
  */
 export default function Subscribe(event: keyof WebSocketClientEvents): MethodDecorator {
   return (target: any, _, descriptor: TypedPropertyDescriptor<any>) => {
-    if (target.prototype === undefined)
-      target = target.constructor;
-
     const subscriptions: Subscription[] = Reflect.getMetadata(MetadataKeys.Subscription, target) ?? [];
     subscriptions.push({
       run: descriptor.value!,
       event
     });
 
-    Reflect.defineMetadata(MetadataKeys.Subscription, target, subscriptions);
+    Reflect.defineMetadata(MetadataKeys.Subscription, subscriptions, target);
   };
 }

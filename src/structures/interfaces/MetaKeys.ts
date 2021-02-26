@@ -22,6 +22,5 @@
 
 export enum MetadataKeys {
   Subscription = '$noel::di::subscription',
-  Component    = '$noel::di::component',
-  Service      = '$noel::di::service'
+  Component    = '$noel::di::component'
 }

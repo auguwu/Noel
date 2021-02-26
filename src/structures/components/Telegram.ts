@@ -90,7 +90,6 @@ export default class TelegramComponent implements ComponentImpl {
 
   private async onNewPoll(context: NoelContext) {
     const update: any = context.update;
-    console.log(update.message.poll);
 
     const tgRelayChannelId = this.config.getProperty('TELEGRAM_RELAY_CHANNEL_ID');
     if (!tgRelayChannelId)
@@ -158,14 +157,17 @@ export default class TelegramComponent implements ComponentImpl {
       return;
 
     const member = update.message.left_chat_member;
-    return channel.send(`:sob: **${member.first_name}${member.last_name ? ` ${member.last_name}` : ''}** (@${member.username}) has left from the Telegram side.`);
+    return channel.send(`:sob: **${member.first_name}${member.last_name ? ` ${member.last_name}` : ''}** (${member.username ? `@${member.username}` : '<anonymous>'}) has left from the Telegram side.`);
   }
 
   private async onMessageRelay(context: NoelContext) {
     const update: any = context.update;
-    console.log(update);
 
-    const botIcon = update.message.from.is_bot ? ' <:botIcon:814566565604360272>' : '';
+    // Handling editing messages isn't available
+    if (update.edited_message !== undefined)
+      return;
+
+    const botIcon = update.message?.from?.is_bot ? ' <:botIcon:814566565604360272>' : '';
     let text = '';
 
     if (update.message.reply_to_message !== undefined) {
@@ -177,7 +179,7 @@ export default class TelegramComponent implements ComponentImpl {
 
     const embed = new EmbedBuilder()
       .setColor(Color)
-      .setAuthor(`${update.message.from.first_name}${update.message.from.last_name ? ` ${update.message.from.last_name}` : ''} (@${update.message.from.username})${botIcon}`)
+      .setAuthor(`${update.message.from.first_name}${update.message.from.last_name ? ` ${update.message.from.last_name}` : ''} (${update.message.from.username ? `@${update.message.from.username}` : '<anonymous>'})${botIcon}`)
       .setDescription(text);
 
     const tgRelayChannelId = this.config.getProperty('TELEGRAM_RELAY_CHANNEL_ID');

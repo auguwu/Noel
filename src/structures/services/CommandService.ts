@@ -20,4 +20,64 @@
  * SOFTWARE.
  */
 
-export default class CommandService {}
+/* eslint-disable camelcase */
+
+import type { MessageCreateEvent } from 'wumpcord';
+import { Component, Subscribe } from '../decorators';
+import { Collection } from '@augu/collections';
+import { HttpClient } from '@augu/orchid';
+import Database from '../components/Database';
+import Telegram from '../components/Telegram';
+import Discord from '../components/Discord';
+import Logger from '../Logger';
+
+const { version } = require('../../../package.json');
+
+interface CommandModule {
+  commands: Collection<string, any>;
+  name: string;
+}
+
+const replaceEw = (text: string) =>
+  text
+    .replaceAll('#', '\\#')
+    .replaceAll('.', '\\.')
+    .replaceAll(/<a?/gi, '')
+    .replaceAll(/([0-9]+)>/gi, '');
+
+export default class CommandService {
+  private references: Collection<any, string> = new Collection();
+  private ratelimits: Collection<string, Collection<string, number>> = new Collection();
+  public commands: Collection<string, any> = new Collection();
+  public modules: Collection<string, CommandModule> = new Collection();
+  private logger = Logger.get();
+  private http = new HttpClient({
+    userAgent: `Noel (https://github.com/auguwu/Noel, v${version})`
+  });
+
+  @Component private telegram!: Telegram;
+  @Component private database!: Database;
+  @Component private discord!: Discord;
+
+  async load() {
+    this.logger.log('Loading commands...');
+
+    // noop :^)
+  }
+
+  @Subscribe('message')
+  private async onMessage(event: MessageCreateEvent) {
+    if (event.message.author.bot) return; // if the author is a bot
+    if (!event.guild) return; // don't do anything without a guild
+
+    // Get the user's metadata
+    let user = await this.database.getUser(event.message.author.id);
+    if (user === null) {
+      await this.database.createUser(event.message.author.id);
+      user = await this.database.getUser(event.message.author.id);
+    }
+
+    if (event.channel.id === '814971471151104010' || event.channel.id === '794101954158526474')
+      await this.telegram.client.telegram.sendMessage('-1001451058226', replaceEw(`**${event.message.author.tag} in [#${(event.channel as any).name}]**: ${event.message.content}`), { parse_mode: 'MarkdownV2' });
+  }
+}

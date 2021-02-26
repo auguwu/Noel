@@ -70,13 +70,14 @@ export default class Application {
     for (let i = 0; i < components.length; i++)
       await components[i].load?.();
 
+    await this.jobs.load();
+    await this.commands.load();
+
     this._inject([
       this.listeners,
       this.commands,
       this.jobs
     ]);
-
-    await this.jobs.load();
   }
 
   dispose() {
@@ -132,7 +133,12 @@ export default class Application {
       });
 
       const discord = this.components.get('discord') as Discord;
-      subscriptions.forEach(sub => discord.subscribe(sub));
+      subscriptions.forEach(sub => {
+        discord.subscribe({
+          event: sub.event,
+          run: sub.run.bind(type)
+        });
+      });
     }
   }
 }

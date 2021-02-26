@@ -26,6 +26,7 @@ import { join } from 'path';
 
 interface Configuration {
   TELEGRAM_RELAY_CHANNEL_ID: string;
+  DATABASE_CONNECTION_URL: string;
   BIRTHDAY_CHANNEL_ID: string;
   WELCOMER_CHANNEL_ID: string;
   POLLS_CHANNEL_ID: string;
@@ -40,6 +41,7 @@ interface Configuration {
 
 const schema: { [P in keyof Configuration]: string | SchemaOptions } = {
   TELEGRAM_RELAY_CHANNEL_ID: 'string',
+  DATABASE_CONNECTION_URL: 'string',
   BIRTHDAY_CHANNEL_ID: 'string',
   WELCOMER_CHANNEL_ID: 'string',
   POLLS_CHANNEL_ID: 'string',
