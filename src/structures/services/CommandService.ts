@@ -22,13 +22,15 @@
 
 /* eslint-disable camelcase */
 
-import type { MessageCreateEvent } from 'wumpcord';
+import type { MessageCreateEvent, TextChannel } from 'wumpcord';
 import { Component, Subscribe } from '../decorators';
 import { Collection } from '@augu/collections';
 import { HttpClient } from '@augu/orchid';
+import T2DParser from '../parsers/DiscordToTelegram';
 import Database from '../components/Database';
 import Telegram from '../components/Telegram';
 import Discord from '../components/Discord';
+import Config from '../components/Config';
 import Logger from '../Logger';
 
 const { version } = require('../../../package.json');
@@ -37,13 +39,6 @@ interface CommandModule {
   commands: Collection<string, any>;
   name: string;
 }
-
-const replaceEw = (text: string) =>
-  text
-    .replaceAll('#', '\\#')
-    .replaceAll('.', '\\.')
-    .replaceAll(/<a?/gi, '')
-    .replaceAll(/([0-9]+)>/gi, '');
 
 export default class CommandService {
   private references: Collection<any, string> = new Collection();
@@ -58,6 +53,7 @@ export default class CommandService {
   @Component private telegram!: Telegram;
   @Component private database!: Database;
   @Component private discord!: Discord;
+  @Component private config!: Config;
 
   async load() {
     this.logger.log('Loading commands...');
@@ -66,8 +62,8 @@ export default class CommandService {
   }
 
   @Subscribe('message')
-  private async onMessage(event: MessageCreateEvent) {
-    if (event.message.author.bot) return; // if the author is a bot
+  private async onMessage(event: MessageCreateEvent<TextChannel>) {
+    if (event.message.author.bot) return; // ignore bots
     if (!event.guild) return; // don't do anything without a guild
 
     // Get the user's metadata
@@ -77,7 +73,12 @@ export default class CommandService {
       user = await this.database.getUser(event.message.author.id);
     }
 
-    if (event.channel.id === '814971471151104010' || event.channel.id === '794101954158526474')
-      await this.telegram.client.telegram.sendMessage('-1001451058226', replaceEw(`**${event.message.author.tag} in [#${(event.channel as any).name}]**: ${event.message.content}`), { parse_mode: 'MarkdownV2' });
+    const channels = this.config.getProperty('TELEGRAM_RELAY_CHANNELS') ?? [];
+    const tgGroupID = this.config.getProperty('TELEGRAM_GROUP_CHANNEL_ID');
+    if (channels.includes(event.channel.id)) {
+      const text = T2DParser.parse(event.message.embeds.length > 0 ? event.message.embeds[0] : `**${event.message.author.tag} | #${event.channel.name}**: ${event.message.content}`);
+      if (tgGroupID !== undefined)
+        return this.telegram.client.telegram.sendMessage(tgGroupID, text, { parse_mode: 'MarkdownV2' });
+    }
   }
 }
