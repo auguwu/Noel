@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-import { NotInjectable, getSubscriptions, getComponentsIn } from './decorators';
+import { NotInjectable, getSubscriptions, getComponentsIn, getInjections, isInjectable } from './decorators';
 import type { ComponentImpl as Component } from '.';
 import ListenerService from './services/ListenerService';
 import { Collection } from '@augu/collections';
@@ -36,6 +36,7 @@ import CommandService from './services/CommandService';
  */
 @NotInjectable
 export default class Application {
+  public injectables: Collection<string, any>;
   public components: Collection<string, Component>;
   public listeners: ListenerService;
   public commands: CommandService;
@@ -47,6 +48,7 @@ export default class Application {
   public name = 'Noel';
 
   constructor() {
+    this.injectables = new Collection();
     this.components = new Collection();
     this.listeners = new ListenerService();
     this.commands = new CommandService();
@@ -73,6 +75,17 @@ export default class Application {
     await this.jobs.load();
     await this.commands.load();
 
+    const refs: any[] = [
+      isInjectable(this.commands) ? this.commands : null,
+      isInjectable(this.listeners) ? this.listeners : null,
+      isInjectable(this.jobs) ? this.jobs : null
+    ].filter(value => value !== null);
+
+    for (let i = 0; i < refs.length; i++) {
+      this.injectables.set(refs[i].name, refs[i]);
+      this.references.set(refs[i], refs[i].name);
+    }
+
     this._inject([
       this.listeners,
       this.commands,
@@ -90,10 +103,12 @@ export default class Application {
   $ref(reference: Component) {
     const ref = this.references.get(reference);
     if (ref === undefined)
-      throw new TypeError(`Component ${reference.name} was not found in collection`);
+      throw new TypeError(`Component or injectable ${reference.name} was not found in collection`);
 
     if (this.components.has(ref))
       return this.components.get(ref)!;
+    else if (this.injectables.has(ref))
+      return this.injectables.get(ref)!;
     else
       throw new TypeError(`Reference "${ref}" was not implemented?`);
   }
@@ -119,12 +134,25 @@ export default class Application {
 
       const subscriptions = getSubscriptions(type);
       const components = getComponentsIn(type);
+      const injectables = getInjections(type);
 
       components.forEach(component => {
         Object.defineProperty(type, component.key, {
           get: () => this.$ref(component.reference),
           set: () => {
             throw new SyntaxError('Cannot write new component to this property.');
+          },
+
+          enumerable: true,
+          configurable: true
+        });
+      });
+
+      injectables.forEach(inject => {
+        Object.defineProperty(type, inject.key, {
+          get: () => this.$ref(inject.reference),
+          set: () => {
+            throw new TypeError('Cannot write new injectable to this property.');
           },
 
           enumerable: true,

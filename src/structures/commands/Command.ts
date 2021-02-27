@@ -19,3 +19,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+import { getSubcommandsIn, getChecksIn } from './decorators';
+import { Collection } from '@augu/collections';

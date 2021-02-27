@@ -22,5 +22,7 @@
 
 export enum MetadataKeys {
   Subscription = '$noel::di::subscription',
+  Injectable   = '$noel::di::injectable',
+  Injections   = '$noel::di::injections',
   Component    = '$noel::di::component'
 }

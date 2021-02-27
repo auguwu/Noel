@@ -23,7 +23,7 @@
 /* eslint-disable camelcase */
 
 import type { MessageCreateEvent, TextChannel } from 'wumpcord';
-import { Component, Subscribe } from '../decorators';
+import { Component, Injectable, Subscribe } from '../decorators';
 import { Collection } from '@augu/collections';
 import { HttpClient } from '@augu/orchid';
 import T2DParser from '../parsers/DiscordToTelegram';
@@ -40,6 +40,7 @@ interface CommandModule {
   name: string;
 }
 
+@Injectable
 export default class CommandService {
   private references: Collection<any, string> = new Collection();
   private ratelimits: Collection<string, Collection<string, number>> = new Collection();

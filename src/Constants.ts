@@ -26,5 +26,7 @@ export const Color = 0x80A3DD;
 /** List of emojis to use */
 export enum Emojis {
   TransHeart = '<:noelTransHeart:808820757211119657>',
-  GayHeart   = '<:noelGayHeart:808820825821413396>'
+  Nervous    = '<:noelNervous:815113863778271232>',
+  GayHeart   = '<:noelGayHeart:808820825821413396>',
+  Wave       = '<:noelWave:815113902304002058>'
 }

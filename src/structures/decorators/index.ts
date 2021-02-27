@@ -20,6 +20,7 @@
  * SOFTWARE.
  */
 
+export { default as Injectable, Inject, getInjections, isInjectable } from './Injectable';
 export { default as NotInjectable, isNotInjectable } from './NotInjectable';
 export { default as Subscribe, getSubscriptions } from './Subscribe';
 export { default as Component, getComponentsIn } from './Component';

@@ -19,3 +19,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+import type { ArgumentMeta } from './arguments/Argument';
+import type CommandMessage from './CommandMessage';
+
+/** definition of a subcommand */
+export interface SubcommandDefinition {
+  /** description of the subcommand */
+  description: string;
+
+  /** metadata of arguments */
+  args?: ArgumentMeta[];
+
+  /** the name of the subcommand */
+  name: string;
+
+  /** the subcommand's execution function */
+  run: SubcommandRunner;
+}
+
+type SubcommandRunner = <T extends object = {}>(msg: CommandMessage, args?: T) => Promise<any>;
+
+export default class Subcommand {
+  public description: string;
+  public name: string;
+  #runner: SubcommandRunner;
+
+  constructor(def: SubcommandDefinition) {
+    this.description = def.description;
+    this.#runner = def.run;
+    this.name = def.description;
+  }
+
+  async run<T extends object = {}>(msg: CommandMessage, args?: T) {
+    return this.#runner<T>(msg, args);
+  }
+}
