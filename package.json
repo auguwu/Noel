@@ -27,7 +27,7 @@
   "devDependencies": {
     "@augu/eslint-config": "1.10.0",
     "@augu/tsconfig": "1.0.1",
-    "@types/node": "14.14.31",
+    "@types/node": "14.14.34",
     "@types/node-cron": "2.0.3",
     "@types/pg": "7.14.10",
     "@types/stack-trace": "0.0.29",
