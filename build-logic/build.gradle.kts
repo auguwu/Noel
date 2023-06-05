@@ -86,7 +86,7 @@ configurations.configureEach {
         attributes {
             attribute(
                 GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE,
-                project.objects.named(GradleVersion.current().version)
+                project.objects.named(GradleVersion.current().version),
             )
         }
     }

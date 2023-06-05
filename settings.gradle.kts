@@ -54,7 +54,7 @@ include(
     ":modules:linear",
     ":modules:logging",
     ":modules:metrics",
-    ":modules:postgresql"
+    ":modules:postgresql",
 )
 
 @Suppress("INACCESSIBLE_TYPE")
