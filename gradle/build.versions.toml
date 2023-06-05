@@ -1,0 +1,72 @@
+# 🐾✨ Noel: Discord bot made to manage my servers, made in Java.
+# Copyright 2021-2023 Noel <cutie@floofy.dev>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+[versions]
+apache-commons-lang3 = "3.12.0"
+elasticsearch-rest = "8.8.0"
+logstash-logback = "7.3"
+prometheus-java = "0.16.0"
+jb-annotations = "24.0.1"
+noel-commons = "2.5.1"
+elastic-apm = "1.38.0"
+postgresql = "42.6.0"
+hikaricp = "5.0.1"
+jackson = "2.15.2"
+logback = "1.4.7"
+sentry = "6.21.0"
+slf4j = "2.0.7"
+guice = "7.0.0"
+jda = "5.0.0-beta.10"
+
+[libraries]
+jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jb-annotations" }
+apache-commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "apache-commons-lang3" }
+postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+hikaricp = { module = "com.zaxxer:HikariCP", version.ref = "hikaricp" }
+guice = { module = "com.google.inject:guice", version.ref = "guice" }
+jda = { module = "net.dv8tion:JDA", version.ref = "jda" }
+
+# noel commons
+noel-commons-extensions-kotlin = { module = "dev.floofy.commons:extensions-kotlin", version.ref = "noel-commons" }
+noel-commons-java-utils = { module = "dev.floofy.commons:java-utils", version.ref = "noel-commons" }
+
+# sentry libraries
+sentry-kotlin-extensions = { module = "io.sentry:sentry-kotlin-extensions", version.ref = "sentry" }
+sentry-logback = { module = "io.sentry:sentry-logback", version.ref = "sentry" }
+sentry = { module = "io.sentry:sentry", version.ref = "sentry" }
+
+# logback libraries
+logback-logstash = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstash-logback" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+logback-core = { module = "ch.qos.logback:logback-core", version.ref = "logback" }
+
+# elasticsearch
+elasticsearch-rest-client-sniffer = { module = "org.elasticsearch.client:elasticsearch-rest-client-sniffer", version.ref = "elasticsearch-rest" }
+elasticsearch-rest-client = { module = "org.elasticsearch.client:elasticsearch-rest-client", version.ref = "elasticsearch-rest" }
+elasticsearch-java-client = { module = "co.elastic.clients:elasticsearch-java", version.ref = "elasticsearch-rest" }
+
+# prometheus
+prometheus-simpleclient-hotspot = { module = "io.prometheus:simpleclient_hotspot", version.ref = "prometheus-java" }
+prometheus-simpleclient-common = { module = "io.prometheus:simpleclient_common", version.ref = "prometheus-java" }
+prometheus-simpleclient = { module = "io.prometheus:simpleclient", version.ref = "prometheus-java" }
+
+# jackson libraries
+jackson-format-yaml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml", version.ref = "jackson" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
+
+# elastic apm
+elastic-apm-agent-attach = { module = "co.elastic.apm:apm-agent-attach", version.ref = "elastic-apm" }
+elastic-apm-agent-api = { module = "co.elastic.apm:apm-agent-api", version.ref = "elastic-apm" }
