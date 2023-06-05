@@ -18,3 +18,7 @@
 plugins {
     id("noel-module")
 }
+
+dependencies {
+    implementation(libs.jackson.format.yaml)
+}

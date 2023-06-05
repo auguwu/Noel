@@ -44,7 +44,7 @@
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <charset>utf-8</charset>
             <pattern>
-                %basicGray([%d{yyyy/MM/dd - HH:mm:ss.SSS, +10}]) %logLevel(%-5level) %basicGray([%cyan(%-56logger{48})) %threadName :: %msg %mdc%n
+                %basicGray([%d{yyyy/MM/dd - HH:mm:ss.SSS, +10}]) %logLevel(%-5level) %basicGray([%cyan(%-56logger{48})) %threadName :: %mdc %msg%n
             </pattern>
         </encoder>
     </appender>
