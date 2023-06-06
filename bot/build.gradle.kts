@@ -27,6 +27,7 @@ plugins {
 
 dependencies {
     implementation(projects.modules.logging)
+    implementation(projects.modules.discord)
     implementation(projects.framework)
     implementation(projects.modules)
 

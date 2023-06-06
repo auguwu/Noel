@@ -69,40 +69,6 @@ public class Config {
         settings = mapper.readValue(configFile, Map.class);
 
         LOG.trace("Successfully loaded configuration in location [{}]", configFile);
-        //        for (Map.Entry<String, Object> entry : settings.entrySet()) {
-        //            final String key = entry.getKey();
-        //
-        //            // If the key contains a '.'
-        //            if (key.contains(".")) {
-        //                final PreviousReferenceIterator<String> iter = new
-        // PreviousReferenceIterator<>(Arrays.stream(key.split("\\.")).toList());
-        //                while (iter.hasNext()) {
-        //                    final Tuple<String> item = iter.next();
-        //                    final String prev = item.first();
-        //                    final String next = item.second();
-        //
-        //                    // should prevent edge-cases like ".[].heck: true" (that shouldn't be even valid YAML to
-        // begin with)
-        //                    if (prev == null && next.length() == 2 && next.charAt(0) == '[' && next.charAt(1) == ']')
-        // {
-        //                        throw new IllegalStateException("Cannot use array indexing without a key with a
-        // dot.");
-        //                    }
-        //
-        //                    if (prev != null) {
-        //                        if (next.length() == 2 && next.charAt(0) == '[' && next.charAt(1) == ']') {
-        //                            final Object ref = settings.get(prev);
-        //                            if (!(ref instanceof List<?>)) {
-        //                                settings.remove(prev);
-        //                                settings.put(prev, List.of());
-        //                            }
-        //
-        //                            final List<Object> refAgain = (List<Object>)ref;
-        //                        }
-        //                    }
-        //                }
-        //            }
-        //        }
     }
 
     public <T> T get(@NotNull Setting<T> setting) {

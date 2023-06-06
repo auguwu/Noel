@@ -17,6 +17,7 @@
 
 package dev.floofy.noel.modules;
 
+import com.google.inject.Injector;
 import com.google.inject.Module;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,8 +33,13 @@ public interface NoelModule extends Module {
     /**
      * Method to implement when this module is being disposed by the
      * shutdown thread.
+     *
+     * @param injector The injector to use when destroying objects that
+     *                 might've been initialized from this module.
+     * @throws Exception If any exception might've been thrown when destroying
+     * this module.
      */
-    default void dispose() {}
+    default void dispose(@NotNull Injector injector) throws Exception {}
 
     /**
      * The module name.

@@ -18,3 +18,10 @@
 plugins {
     id("noel-module")
 }
+
+dependencies {
+    implementation(projects.modules)
+    implementation(libs.jda) {
+        exclude(module = "opus-java")
+    }
+}

@@ -47,7 +47,6 @@ include(
     ":common",
     ":framework",
     ":modules",
-    ":modules:config",
     ":modules:discord",
     ":modules:elasticsearch",
     ":modules:kubernetes",

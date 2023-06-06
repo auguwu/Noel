@@ -61,4 +61,9 @@ public class Setting<T> {
         this.identifySettingFn = Objects.requireNonNull(identifySettingFn, "missing identify resolver for setting");
         this.key = key;
     }
+
+    public T resolve() {
+        final Config config = Config.get();
+        return config.get(this);
+    }
 }

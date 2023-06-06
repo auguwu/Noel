@@ -17,4 +17,25 @@
 
 package dev.floofy.noel.bot.commands.general;
 
-public class GeneralCommandsModule {}
+import com.google.inject.multibindings.Multibinder;
+import dev.floofy.noel.discord.commands.AbstractCommand;
+import dev.floofy.noel.modules.AbstractNoelModule;
+import dev.floofy.noel.modules.annotations.ModulePriority;
+import org.jetbrains.annotations.NotNull;
+
+@ModulePriority(100)
+public class GeneralCommandsModule extends AbstractNoelModule {
+    @Override
+    protected void configure() {
+        final Multibinder<AbstractCommand> commandMultibinder =
+                Multibinder.newSetBinder(binder(), AbstractCommand.class);
+
+        commandMultibinder.addBinding().to(HelpCommand.class);
+    }
+
+    @Override
+    @NotNull
+    public String name() {
+        return "noel:commands:general";
+    }
+}

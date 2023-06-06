@@ -17,4 +17,11 @@
 
 package dev.floofy.noel.bot.commands.general;
 
-public class HelpCommand {}
+import dev.floofy.noel.discord.commands.AbstractCommand;
+import dev.floofy.noel.discord.commands.CommandContext;
+import org.jetbrains.annotations.NotNull;
+
+public class HelpCommand extends AbstractCommand {
+    @Override
+    public void execute(@NotNull CommandContext context) {}
+}

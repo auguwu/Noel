@@ -17,32 +17,49 @@
 
 package dev.floofy.noel.bot.bootstrap.phases;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import dev.floofy.noel.bot.bootstrap.BootstrapPhase;
-import dev.floofy.noel.config.Config;
-import dev.floofy.noel.config.SecureSetting;
-import dev.floofy.noel.config.Setting;
+import dev.floofy.noel.modules.ModuleLocator;
+import dev.floofy.noel.modules.NoelModule;
+import dev.floofy.noel.modules.jda.NoelJDAModule;
+import dev.floofy.utils.java.SetOnce;
 import java.util.List;
-import java.util.Objects;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.JDABuilder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 public class ConfigureModulesBootstrapPhase implements BootstrapPhase {
-    private final Setting<SecureSetting> discordToken = Setting.secureSetting("discord.token");
+    private static final SetOnce<Injector> injectorSetOnce = new SetOnce<>();
     private final Logger LOG = LoggerFactory.getLogger(getClass());
+
+    /**
+     * Returns the {@link Injector} that was created at bootstrap-time, this is only used
+     * by the {@link ShutdownPhaseThread} to destroy modules.
+     */
+    @Nullable
+    public static Injector getInjector() {
+        return injectorSetOnce.getValueOrNull();
+    }
 
     @Override
     public void bootstrap() throws Exception {
-        final Config config = Config.get();
-        final String token = config.get(discordToken).resolve();
-        if (Objects.equals(token, "")) {
-            LOG.error("Missing 'discord.token' property, please fill that in.");
-            System.exit(1);
+        final List<NoelModule> modules = ModuleLocator.loadModules();
+        final Injector injector = Guice.createInjector(modules);
+        injectorSetOnce.setValue(injector);
+
+        final JDA jda = injector.getInstance(JDA.class);
+        LOG.info("Now configuring JDA-based modules!");
+        for (NoelModule mod :
+                modules.stream().filter(i -> i instanceof NoelJDAModule).toList()) {
+            ((NoelJDAModule) mod).configure(jda);
         }
 
-        final JDA jda = JDABuilder.create(token, List.of()).build();
+        LOG.info("Guice has been initialized successfully, now running bot!");
+        MDC.remove("bootstrap.phase");
         jda.awaitReady();
     }
 

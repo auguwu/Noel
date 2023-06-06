@@ -36,10 +36,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CommandHandler extends ListenerAdapter {
-    private final ExecutorService executorService =
-            Executors.newCachedThreadPool(ThreadFactoryKt.createThreadFactory("Noel-CommandExecutor", null, null));
-    private final Logger LOG = LoggerFactory.getLogger(getClass());
+    private final ExecutorService executorService = Executors.newCachedThreadPool(ThreadFactoryKt.createThreadFactory(
+            "Noel-CommandExecutor", null, Thread.currentThread().getThreadGroup()));
 
+    private final Logger LOG = LoggerFactory.getLogger(getClass());
     private final Set<AbstractCommand> commands;
 
     @Inject
@@ -70,6 +70,7 @@ public class CommandHandler extends ListenerAdapter {
             event.reply(":question: **| Command %s was not found**".formatted(event.getName()))
                     .setEphemeral(true)
                     .queue();
+
             return;
         }
 

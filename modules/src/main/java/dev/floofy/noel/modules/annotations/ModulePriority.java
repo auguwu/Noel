@@ -15,9 +15,19 @@
  * limitations under the License.
  */
 
-package dev.floofy.noel;
+package dev.floofy.noel.modules.annotations;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public record Tuple<T>(@Nullable T first, @NotNull T second) {}
+/**
+ * Represents the priority that this module is required to be initialized correctly. By default,
+ * it will be at 0, the higher it is, the more prioritized it is.
+ */
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface ModulePriority {
+    int value() default 0;
+}
