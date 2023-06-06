@@ -21,14 +21,13 @@ import dev.floofy.noel.bot.bootstrap.BootstrapPhase;
 import dev.floofy.noel.config.Config;
 import dev.floofy.noel.config.SecureSetting;
 import dev.floofy.noel.config.Setting;
+import java.util.List;
+import java.util.Objects;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.Objects;
 
 public class ConfigureModulesBootstrapPhase implements BootstrapPhase {
     private final Setting<SecureSetting> discordToken = Setting.secureSetting("discord.token");

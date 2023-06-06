@@ -641,3 +641,4 @@ FodyWeavers.xsd
 # Additional files built by Visual Studio
 
 config.yml
+!bot/bin
