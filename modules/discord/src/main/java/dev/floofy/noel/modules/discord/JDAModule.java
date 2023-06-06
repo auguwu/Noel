@@ -48,9 +48,11 @@ public class JDAModule extends AbstractNoelModule {
                 .setAutoReconnect(true)
                 .setStatus(OnlineStatus.IDLE)
                 .setEnableShutdownHook(false)
-                .setEventManager(new InterfacedEventManager());
+                .setEventManager(new InterfacedEventManager())
+                .addEventListeners(new GenericEventAdapter());
 
         bind(JDA.class).toInstance(builder.build());
+        bind(JDAModule.class).toInstance(this);
     }
 
     @Override

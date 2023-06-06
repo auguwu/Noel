@@ -54,7 +54,7 @@ public abstract class AbstractCommand {
         Objects.requireNonNull(name, "Option name cannot be null.");
 
         return (CommandOption<T>) options.stream()
-                .filter(opt -> opt.getInfo().value().equals(name))
+                .filter(opt -> opt.getInfo().name().equals(name))
                 .findAny()
                 .orElse(null);
     }

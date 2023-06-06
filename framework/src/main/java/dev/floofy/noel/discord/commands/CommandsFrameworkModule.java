@@ -17,11 +17,13 @@
 
 package dev.floofy.noel.discord.commands;
 
+import com.google.inject.Injector;
 import dev.floofy.noel.discord.commands.internal.CommandHandler;
-import dev.floofy.noel.modules.AbstractNoelModule;
+import dev.floofy.noel.modules.jda.AbstractNoelJDAModule;
+import net.dv8tion.jda.api.JDA;
 import org.jetbrains.annotations.NotNull;
 
-public class CommandsFrameworkModule extends AbstractNoelModule {
+public class CommandsFrameworkModule extends AbstractNoelJDAModule {
     @Override
     @NotNull
     public String name() {
@@ -31,5 +33,10 @@ public class CommandsFrameworkModule extends AbstractNoelModule {
     @Override
     protected void configure() {
         bind(CommandHandler.class).asEagerSingleton();
+    }
+
+    @Override
+    public void configure(JDA jda, Injector injector) {
+        jda.addEventListener(injector.getInstance(CommandHandler.class));
     }
 }

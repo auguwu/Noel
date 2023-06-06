@@ -22,7 +22,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Marks a field as an option that can be registered and read from. The field
@@ -37,8 +36,9 @@ public @interface Option {
      * a subcommand or subcommand group as they have their own implementation
      * within a {@link dev.floofy.noel.discord.commands.AbstractCommand}.
      */
-    @NotNull
     OptionType type() default OptionType.STRING;
+
+    String description() default "No description was provided.";
 
     /**
      * Whether if this option is required to be executed
@@ -49,6 +49,5 @@ public @interface Option {
     /**
      * Option name.
      */
-    @NotNull
-    String value();
+    String name();
 }

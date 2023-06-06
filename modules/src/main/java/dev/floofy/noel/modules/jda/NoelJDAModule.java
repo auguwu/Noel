@@ -17,6 +17,7 @@
 
 package dev.floofy.noel.modules.jda;
 
+import com.google.inject.Injector;
 import dev.floofy.noel.modules.NoelModule;
 import net.dv8tion.jda.api.JDA;
 
@@ -31,5 +32,5 @@ public interface NoelJDAModule extends NoelModule {
      *
      * @param jda JDA instance to configure.
      */
-    void configure(JDA jda);
+    void configure(JDA jda, Injector injector);
 }

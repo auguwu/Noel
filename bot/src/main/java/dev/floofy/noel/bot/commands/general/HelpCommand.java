@@ -19,8 +19,10 @@ package dev.floofy.noel.bot.commands.general;
 
 import dev.floofy.noel.discord.commands.AbstractCommand;
 import dev.floofy.noel.discord.commands.CommandContext;
+import dev.floofy.noel.discord.commands.annotations.Command;
 import org.jetbrains.annotations.NotNull;
 
+@Command(name = "help", description = "Shows information about all of Noel's commands")
 public class HelpCommand extends AbstractCommand {
     @Override
     public void execute(@NotNull CommandContext context) {}

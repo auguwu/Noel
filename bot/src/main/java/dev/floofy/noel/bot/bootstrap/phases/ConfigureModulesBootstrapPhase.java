@@ -20,6 +20,7 @@ package dev.floofy.noel.bot.bootstrap.phases;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import dev.floofy.noel.bot.bootstrap.BootstrapPhase;
+import dev.floofy.noel.discord.commands.internal.CommandHandler;
 import dev.floofy.noel.modules.ModuleLocator;
 import dev.floofy.noel.modules.NoelModule;
 import dev.floofy.noel.modules.jda.NoelJDAModule;
@@ -55,8 +56,12 @@ public class ConfigureModulesBootstrapPhase implements BootstrapPhase {
         LOG.info("Now configuring JDA-based modules!");
         for (NoelModule mod :
                 modules.stream().filter(i -> i instanceof NoelJDAModule).toList()) {
-            ((NoelJDAModule) mod).configure(jda);
+            LOG.trace("Configuring JDA-specific module [{}]", mod.getClass().getName());
+            ((NoelJDAModule) mod).configure(jda, injector);
         }
+
+        final CommandHandler handler = injector.getInstance(CommandHandler.class);
+        jda.addEventListener(handler);
 
         LOG.info("Guice has been initialized successfully, now running bot!");
         MDC.remove("bootstrap.phase");
