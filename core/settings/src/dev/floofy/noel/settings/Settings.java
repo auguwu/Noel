@@ -69,28 +69,3 @@ public final class Settings {
         return value;
     }
 }
-
-/*
-        // Use JSONPath to resolve the path
-        Object raw = JSONPath.from(settings, setting.getName());
-        if (raw == null) {
-            return null;
-        }
-
-        // Apply converter
-        return setting.getConverter().apply(raw);
-
-public class Config {
-    @Nullable
-    public <T> T get(@NotNull String key, @NotNull Function<Object, T> resolver) {
-        Objects.requireNonNull(key);
-        Objects.requireNonNull(resolver);
-
-        return settings.entrySet().stream()
-                .filter(entry -> entry.getKey().equalsIgnoreCase(key))
-                .findAny()
-                .map(entry -> resolver.apply(entry.getValue()))
-                .orElse(null);
-    }
-}
- */
