@@ -27,11 +27,15 @@ bazel_dep(name = "rules_java", version = "8.16.1")
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
     artifacts = [
+        "tools.jackson.dataformat:jackson-dataformat-yaml:3.0.1",
+        "tools.jackson.core:jackson-databind:3.0.1",
         "ch.qos.logback:logback-classic:1.5.20",
+        "org.mongodb:mongodb-driver-sync:5.6.1",
         "org.jetbrains:annotations:26.0.2-1",
         "ch.qos.logback:logback-core:1.5.20",
         "com.google.inject:guice:7.0.0",
         "org.slf4j:slf4j-api:2.0.17",
+        "io.sentry:sentry:8.24.0",
         "net.dv8tion:JDA:6.1.0"
     ],
     repositories = [

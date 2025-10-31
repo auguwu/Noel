@@ -130,5 +130,5 @@ fabric.properties
 
 # others
 bot/resources/logback/logback.properties
-config.toml
+config.yaml
 .direnv/

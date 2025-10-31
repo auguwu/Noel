@@ -60,16 +60,6 @@ public final class ModuleLocator {
             }
 
             assert instance != null;
-
-            final var initMethod = instance.getInitMethod();
-            if (initMethod != null && initMethod.canAccess(instance)) {
-                try {
-                    initMethod.invoke(instance);
-                } catch(IllegalAccessException | InvocationTargetException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-
             modules.add(instance);
         }
 

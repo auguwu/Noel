@@ -24,3 +24,13 @@ java_library(
         artifact("org.jetbrains:annotations")
     ]
 )
+
+java_library(
+    name = "thread_factory",
+    srcs = ["ThreadFactory.java"],
+    visibility = ["//visibility:public"],
+    deps = [
+        artifact("org.jetbrains:annotations")
+    ]
+)
+

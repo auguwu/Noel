@@ -12,3 +12,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+load("@rules_jvm_external//:defs.bzl", "artifact")
+load("//bazel:module.bzl", "noel_module")
+
+noel_module(
+    name = "settings",
+    srcs = glob(["src/dev/floofy/noel/settings/**/*.java"]),
+    resources = glob(["resources/**"]),
+    strip_prefix = "core/settings",
+    deps = [
+        artifact("tools.jackson.dataformat:jackson-dataformat-yaml:3.0.1"),
+        artifact("tools.jackson.core:jackson-databind:3.0.1"),
+        artifact("org.jetbrains:annotations"),
+        artifact("com.google.inject:guice"),
+        artifact("org.slf4j:slf4j-api"),
+    ]
+)

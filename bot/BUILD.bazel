@@ -21,7 +21,11 @@ java_binary(
     srcs = ["src/dev/floofy/noel/Bootstrap.java"],
     main_class = "dev.floofy.noel.Bootstrap",
     visibility = ["//visibility:public"],
-    runtime_deps = ["//modules/discord"],
+    runtime_deps = [
+        "//core/settings",
+        "//framework",
+        "//modules/discord"
+    ],
     deps = [
         "//core/src/dev/floofy/noel:info",
         "//core/src/dev/floofy:noel",

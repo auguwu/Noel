@@ -47,9 +47,10 @@ public final class Noel {
         ));
     }
 
-    private final List<AbstractNoelModule> modules = ModuleLocator.loadModules();
 
     private static Noel instance;
+
+    private final List<AbstractNoelModule> modules = ModuleLocator.loadModules();
     private Injector injector;
 
     public static void onShutdown() {
@@ -106,6 +107,18 @@ public final class Noel {
 
         assert injector == null : "cannot call `bootstrap()` twice";
         injector = Guice.createInjector(modules);
+
+        // Initialize our modules
+        for (var mod: getModules()) {
+            final var initMethod = mod.getInitMethod();
+            if (initMethod != null && initMethod.canAccess(mod)) {
+                try {
+                    initMethod.invoke(mod, injector);
+                } catch(IllegalAccessException | InvocationTargetException e) {
+                    throw new RuntimeException(String.format("Failed to initialize module %s", mod.getInfo().name()), e);
+                }
+            }
+        }
 
         // Get the initialized `JDA` instance. It should be the second thing
         // to be injected already.

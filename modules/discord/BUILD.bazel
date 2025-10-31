@@ -22,6 +22,8 @@ noel_module(
     resources = glob(["resources/**"]),
     strip_prefix = "modules/discord",
     deps = [
+        "//core/settings",
+
         artifact("org.jetbrains:annotations"),
         artifact("com.google.inject:guice"),
         artifact("org.slf4j:slf4j-api"),

@@ -18,6 +18,7 @@ build:opt --compilation_mode=opt
 
 build --stamp
 build --workspace_status_command=./hack/stamp.sh
+build --java_language_version=21
 
 test --test_output=all
 

@@ -17,10 +17,10 @@ load("@rules_jvm_external//:defs.bzl", "artifact")
 load("//bazel:module.bzl", "noel_module")
 
 noel_module(
-    name = "discord",
+    name = "birthdays",
     srcs = glob(["src/dev/floofy/noel/modules/**/*.java"]),
     resources = glob(["resources/**"]),
-    strip_prefix = "modules/discord",
+    strip_prefix = "modules/birthdays",
     deps = [
         artifact("org.jetbrains:annotations"),
         artifact("com.google.inject:guice"),

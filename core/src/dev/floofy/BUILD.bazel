@@ -21,6 +21,7 @@ java_library(
     srcs = ["Noel.java"],
     visibility = ["//visibility:public"],
     deps = [
+        "//core/settings",
         "//modules",
 
         artifact("org.jetbrains:annotations"),

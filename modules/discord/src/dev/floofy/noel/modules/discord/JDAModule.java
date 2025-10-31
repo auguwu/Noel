@@ -15,10 +15,14 @@
 
 package dev.floofy.noel.modules.discord;
 
+import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.Provider;
 import dev.floofy.noel.modules.AbstractNoelModule;
 import dev.floofy.noel.modules.annotations.Module;
 import dev.floofy.noel.modules.annotations.Teardown;
+import dev.floofy.noel.settings.Setting;
+import dev.floofy.noel.settings.Settings;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
@@ -41,15 +45,7 @@ public final class JDAModule extends AbstractNoelModule {
 
     @Override
     protected void configure() {
-        final JDABuilder builder = JDABuilder.create("", List.of(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS))
-                .setIdle(true)
-                .setAutoReconnect(true)
-                .setStatus(OnlineStatus.DO_NOT_DISTURB)
-                .setEnableShutdownHook(false)
-                .setEventManager(new InterfacedEventManager())
-                .addEventListeners();
-
-        bind(JDA.class).toInstance(builder.build());
+        bind(JDA.class).toProvider(JDAProvider.class);
     }
 
     @Teardown
@@ -64,6 +60,28 @@ public final class JDAModule extends AbstractNoelModule {
             }
         } else {
             LOG.warn("Noel has disconnected from Discord's wires! ^- ~ -^");
+        }
+    }
+
+    public static final class JDAProvider implements Provider<JDA> {
+        private final Setting<String> discordToken = Setting.string("discord.token");
+        private final Settings settings;
+
+        @Inject
+        public JDAProvider(Settings settings) {
+            this.settings = settings;
+        }
+
+        @Override
+        public JDA get() {
+            return JDABuilder.create(settings.get(discordToken), List.of(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS))
+                    .setIdle(true)
+                    .setAutoReconnect(true)
+                    .setStatus(OnlineStatus.DO_NOT_DISTURB)
+                    .setEnableShutdownHook(false)
+                    .setEventManager(new InterfacedEventManager())
+                    .addEventListeners(new EventListener())
+                    .build();
         }
     }
 }
