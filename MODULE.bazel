@@ -1,5 +1,5 @@
 # 🐾✨ Noel: Discord bot made to manage my servers made in Java
-# Copyright 2021-2025 Noel Towa <cutie@floofy.dev>
+# Copyright 2021-2026 Noel Towa <cutie@floofy.dev>, et al.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 
 module(
     name = "noel",
-    version = "2025.11.01",
     compatibility_level = 0,
     repo_name = "dev_floofy_noel"
 )
@@ -33,6 +32,7 @@ maven.install(
         "org.mongodb:mongodb-driver-sync:5.6.1",
         "org.jetbrains:annotations:26.0.2-1",
         "ch.qos.logback:logback-core:1.5.20",
+        "com.squareup.okhttp3:okhttp:5.3.2",
         "com.google.inject:guice:7.0.0",
         "org.slf4j:slf4j-api:2.0.17",
         "io.sentry:sentry:8.24.0",

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ------------------------------------------------------------------------------
 # 🐾✨ Noel: Discord bot made to manage my servers made in Java
-# Copyright 2021-2025 Noel Towa <cutie@floofy.dev>
+# Copyright 2021-2026 Noel Towa <cutie@floofy.dev>, et al.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.

@@ -1,5 +1,5 @@
 # 🐾✨ Noel: Discord bot made to manage my servers made in Java
-# Copyright 2021-2025 Noel Towa <cutie@floofy.dev>
+# Copyright 2021-2026 Noel Towa <cutie@floofy.dev>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,11 +18,11 @@ load("//bazel:module.bzl", "noel_module")
 
 noel_module(
     name = "discord",
-    srcs = glob(["src/dev/floofy/noel/modules/discord/**/*.java"]),
+    srcs = glob(["src/**/*.java"]),
     resources = glob(["resources/**"]),
     strip_prefix = "modules/discord",
     deps = [
-        "//core/settings",
+        "//modules/settings",
 
         artifact("org.jetbrains:annotations"),
         artifact("com.google.inject:guice"),

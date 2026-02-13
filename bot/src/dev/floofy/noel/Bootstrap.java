@@ -1,5 +1,5 @@
 /// 🐾✨ Noel: Discord bot made to manage my servers made in Java
-/// Copyright 2021-2025 Noel Towa <cutie@floofy.dev>
+/// Copyright 2021-2026 Noel Towa <cutie@floofy.dev>
 ///
 /// Licensed under the Apache License, Version 2.0 (the "License");
 /// you may not use this file except in compliance with the License.
@@ -26,25 +26,22 @@ import java.util.Date;
 public final class Bootstrap {
     private static final Logger LOG = LoggerFactory.getLogger(Bootstrap.class);
 
-    @SuppressWarnings("UnnecessaryModifier")
     public static void main(String[] args) {
-        Thread.currentThread().setName("Noel[Bootstrap]");
-        Runtime.getRuntime().addShutdownHook(new Thread(Noel::onShutdown, "Noel[Shutdown]"));
+        Thread.currentThread().setName("Noel-Bootstrap");
+        Runtime.getRuntime().addShutdownHook(new Thread(Noel::shutdown, "Noel-ShutdownThread"));
 
-        LOG.info("Starting Noel v{}+{} (built at {})",
-                NoelInfo.getVersion(),
-                NoelInfo.getGitCommit(),
+        LOG.info("Bootstrapping Noel v{}+{} (built at {})",
+                BuildInfo.getVersion(),
+                BuildInfo.getGitCommit(),
                 new SimpleDateFormat("MMMM dd, yyyy @ hh:mm:ss z")
-                        .format(Date.from(Instant.parse(NoelInfo.getBuildTimestamp())))
+                        .format(Date.from(Instant.parse(BuildInfo.getBuildTimestamp())))
         );
 
-        LOG.info("Running on Java {} ({})", System.getProperty("java.version"), System.getProperty("java.vendor"));
-
-        final var noel = new Noel();
+        final Noel noel = new Noel();
         try {
             noel.bootstrap();
-        } catch (InterruptedException e) {
-            LOG.error("fatal: tried to bootstrap bot", e);
+        } catch(Exception ex) {
+            ex.printStackTrace();
         }
     }
 }

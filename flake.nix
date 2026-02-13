@@ -1,5 +1,5 @@
 # 🐾✨ Noel: Discord bot made to manage my servers made in Java
-# Copyright 2021-2025 Noel Towa <cutie@floofy.dev>
+# Copyright 2021-2026 Noel Towa <cutie@floofy.dev>, et al.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,22 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 {
-    description = "🐾✨ Discord bot made to manage my servers made in Java";
-    inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+  description = "🐾✨ Discord bot made to manage my servers made in Java";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
-    outputs = { nixpkgs, ... }: let
-        systems = ["x86_64-linux" "aarch64-darwin"];
-        eachSystem = nixpkgs.lib.genAttrs systems;
+  outputs = {nixpkgs, ...}: let
+    systems = ["x86_64-linux" "aarch64-darwin"];
+    eachSystem = nixpkgs.lib.genAttrs systems;
 
-        nixpkgsFor = system: import nixpkgs {
-            inherit system;
-        };
+    nixpkgsFor = system:
+      import nixpkgs {
+        inherit system;
+      };
+  in {
+    formatter = eachSystem (system: (nixpkgsFor system).alejandra);
+    devShells = eachSystem (system: let
+      pkgs = nixpkgsFor system;
     in {
-        formatter = eachSystem(system: (nixpkgsFor system).alejandra);
-        devShells = eachSystem(system: let
-            pkgs = nixpkgsFor system;
-        in {
-            default = pkgs.callPackage ./nix/devshell.nix {};
-        });
-    };
+      default = pkgs.callPackage ./nix/devshell.nix {};
+    });
+  };
 }

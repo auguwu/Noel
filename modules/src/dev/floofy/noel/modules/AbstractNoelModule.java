@@ -1,5 +1,5 @@
 /// 🐾✨ Noel: Discord bot made to manage my servers made in Java
-/// Copyright 2021-2025 Noel Towa <cutie@floofy.dev>
+/// Copyright 2021-2026 Noel Towa <cutie@floofy.dev>
 ///
 /// Licensed under the Apache License, Version 2.0 (the "License");
 /// you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 package dev.floofy.noel.modules;
 
 import com.google.inject.AbstractModule;
-import dev.floofy.noel.modules.annotations.Init;
+import dev.floofy.noel.modules.annotations.Initializer;
 import dev.floofy.noel.modules.annotations.Module;
 import dev.floofy.noel.modules.annotations.Teardown;
 import org.jetbrains.annotations.NotNull;
@@ -52,9 +52,9 @@ public abstract class AbstractNoelModule extends AbstractModule {
      * Returns the initializer {@link Method method}, do not overwrite this.
      */
     @Nullable
-    public Method getInitMethod() {
+    public Method getInitializerMethod() {
         return Arrays.stream(getClass().getMethods())
-                .filter(method -> method.isAnnotationPresent(Init.class))
+                .filter(method -> method.isAnnotationPresent(Initializer.class))
                 .findFirst()
                 .orElse(null);
     }
