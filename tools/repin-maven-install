@@ -1,5 +1,7 @@
+#!/usr/bin/env bash
+# -
 # 🐾✨ Noel: Discord bot made to manage my servers made in Java
-# Copyright 2021-2026 Noel Towa <cutie@floofy.dev>
+# Copyright 2021-2026 Noel Towa <cutie@floofy.dev>, et al.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,20 +14,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# -
 
-load("@rules_jvm_external//:defs.bzl", "artifact")
-load("//bazel:module.bzl", "noel_module")
+set -euo pipefail
 
-noel_module(
-    name = "settings",
-    resources = glob(["resources/**"]),
-    strip_prefix = "modules/settings",
-    srcs = glob(["src/**/*.java"]),
-    deps = [
-        artifact("tools.jackson.dataformat:jackson-dataformat-yaml:3.0.1"),
-        artifact("tools.jackson.core:jackson-databind:3.0.1"),
-        artifact("org.jetbrains:annotations"),
-        artifact("com.google.inject:guice"),
-        artifact("org.slf4j:slf4j-api"),
-    ]
-)
+if ! command -v bazel >/dev/null; then
+      echo "[noel/tooling:repin-maven-install] Missing \`bazel\` command"
+fi
+
+REPIN=1 bazel run @maven//:pin

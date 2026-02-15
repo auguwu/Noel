@@ -17,8 +17,8 @@ package dev.floofy.noel.modules.discord;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.google.inject.Provider;
 import dev.floofy.noel.modules.AbstractNoelModule;
+import dev.floofy.noel.modules.annotations.Initializer;
 import dev.floofy.noel.modules.annotations.Teardown;
 import dev.floofy.noel.modules.settings.Setting;
 import dev.floofy.noel.modules.settings.Settings;
@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @dev.floofy.noel.modules.annotations.Module(
@@ -46,6 +47,11 @@ public final class Module extends AbstractNoelModule {
     protected void configure() {
         bind(EventListener.class).asEagerSingleton();
         bind(JDA.class).toProvider(Provider.class);
+    }
+
+    @Initializer
+    public void init(@NotNull JDA jda, @NotNull ExecutorService executorService) {
+        executorService.submit(jda::awaitReady);
     }
 
     @Teardown
@@ -78,7 +84,7 @@ public final class Module extends AbstractNoelModule {
         public JDA get() {
             return JDABuilder.createLight(settings.get(token), List.of(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS))
                     .setAutoReconnect(true)
-                    .setStatus(OnlineStatus.DO_NOT_DISTURB)
+                    .setStatus(OnlineStatus.IDLE)
                     .setEnableShutdownHook(false)
                     .setEventManager(new InterfacedEventManager())
                     .addEventListeners(eventListener)

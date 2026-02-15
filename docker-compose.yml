@@ -1,5 +1,5 @@
 # 🐾✨ Noel: Discord bot made to manage my servers made in Java
-# Copyright 2021-2026 Noel Towa <cutie@floofy.dev>
+# Copyright 2021-2026 Noel Towa <cutie@floofy.dev>, et al.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,19 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_jvm_external//:defs.bzl", "artifact")
-load("//bazel:module.bzl", "noel_module")
-
-noel_module(
-    name = "settings",
-    resources = glob(["resources/**"]),
-    strip_prefix = "modules/settings",
-    srcs = glob(["src/**/*.java"]),
-    deps = [
-        artifact("tools.jackson.dataformat:jackson-dataformat-yaml:3.0.1"),
-        artifact("tools.jackson.core:jackson-databind:3.0.1"),
-        artifact("org.jetbrains:annotations"),
-        artifact("com.google.inject:guice"),
-        artifact("org.slf4j:slf4j-api"),
-    ]
-)
+services:
+  mongodb:
+    image: mongo:8.2
+    container_name: noel-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: noel
+      MONGO_INITDB_ROOT_PASSWORD: noeliscutieuwu
+      MONGO_INITDB_DATABASE: noel
+    volumes:
+      - mango:/data/db
+volumes:
+  mango:

@@ -20,14 +20,29 @@ import com.google.inject.Module;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public class ExecutorsModule implements Module {
+public final class ExecutorsModule implements Module {
+    private final AtomicInteger threadCount = new AtomicInteger(0);
+
     @Provides
     @Singleton
     ScheduledExecutorService scheduledExecutorService() {
         return Executors.newScheduledThreadPool(2, runner -> new Thread(runner, "Noel-ScheduledExecutorService"));
+    }
+
+    @Provides
+    @Singleton
+    ExecutorService executorService() {
+        return Executors.newCachedThreadPool((runnable) -> {
+            final Thread thread = new Thread(runnable, String.format("Noel-ExecutorService[%d]", threadCount.addAndGet(1)));
+            thread.setDaemon(true);
+
+            return thread;
+        });
     }
 
     @Override

@@ -95,7 +95,10 @@ java_binary(
     resource_strip_prefix = "bot",
     visibility = ["//visibility:public"],
     runtime_deps = [
+        "//modules/http/client",
+        "//modules/http/server",
         "//modules/settings",
+        "//modules/mongodb",
         "//modules/discord",
         "//pinecone"
     ],

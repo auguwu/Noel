@@ -17,15 +17,21 @@ load("@rules_jvm_external//:defs.bzl", "artifact")
 load("//bazel:module.bzl", "noel_module")
 
 noel_module(
-    name = "settings",
+    name = "server",
     resources = glob(["resources/**"]),
-    strip_prefix = "modules/settings",
+    strip_prefix = "modules/http/server",
     srcs = glob(["src/**/*.java"]),
     deps = [
-        artifact("tools.jackson.dataformat:jackson-dataformat-yaml:3.0.1"),
-        artifact("tools.jackson.core:jackson-databind:3.0.1"),
+        "//modules/settings",
+
+        artifact("io.netty:netty-transport-native-unix-common"),
+        artifact("tools.jackson.core:jackson-databind"),
+        artifact("io.netty:netty-codec-http"),
         artifact("org.jetbrains:annotations"),
+        artifact("io.netty:netty-transport"),
         artifact("com.google.inject:guice"),
-        artifact("org.slf4j:slf4j-api"),
+        artifact("io.netty:netty-buffer"),
+        artifact("io.netty:netty-common"),
+        artifact("org.slf4j:slf4j-api")
     ]
 )

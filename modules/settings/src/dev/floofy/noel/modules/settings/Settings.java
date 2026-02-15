@@ -47,7 +47,7 @@ public final class Settings {
 
     @Nullable
     public <T> T get(@NotNull Setting<T> setting) {
-        Objects.requireNonNull(settings);
+        Objects.requireNonNull(settings, "settings was not initialized");
 
         var raw = JSONPath.from(settings, setting.getName());
         return raw.map(o -> setting.getConverter().apply(o)).orElse(null);

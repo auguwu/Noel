@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -73,9 +74,15 @@ public final class Noel {
             final var teardownMethod = mod.getTeardownMethod();
             if (teardownMethod != null && teardownMethod.canAccess(mod)) {
                 try {
-                    teardownMethod.invoke(mod, getInstance().getInjector());
+                    Class<?>[] paramTypes = teardownMethod.getParameterTypes();
+                    Object[] args = new Object[paramTypes.length];
+                    for (int i = 0; i < paramTypes.length; i++) {
+                        args[i] = getInstance().getInjector().getInstance(paramTypes[i]);
+                    }
+
+                    teardownMethod.invoke(mod, args);
                 } catch (IllegalAccessException | InvocationTargetException e) {
-                    LOG.warn("failed to teardown module {}[{}]:", mod.getInfo().name(), mod.getClass().getName(), e);
+                    throw new RuntimeException(e);
                 }
             }
         }
@@ -97,22 +104,29 @@ public final class Noel {
                 modules.stream()
         ).toList());
 
-        for (AbstractNoelModule mod: modules) {
+        for (AbstractNoelModule mod : modules) {
             LOG.info("Located module {}", mod.getClass());
 
             final var initMethod = mod.getInitializerMethod();
             if (initMethod != null && initMethod.canAccess(mod)) {
-                LOG.trace("calling initializer method of class {}", getClass().getName());
+                LOG.trace("Calling initializer method of class {}", mod.getClass().getName());
+
                 try {
-                    initMethod.invoke(mod, injector);
+                    Class<?>[] paramTypes = initMethod.getParameterTypes();
+                    Object[] args = new Object[paramTypes.length];
+                    for (int i = 0; i < paramTypes.length; i++) {
+                        args[i] = injector.getInstance(paramTypes[i]);
+                    }
+
+                    initMethod.invoke(mod, args);
                 } catch (IllegalAccessException | InvocationTargetException e) {
                     throw new RuntimeException(e);
                 }
             }
         }
 
-        final JDA jda = injector.getInstance(JDA.class);
-        jda.awaitReady();
+
+        Thread.currentThread().join();
     }
 
     public static Noel getInstance() {

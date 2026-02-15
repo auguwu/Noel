@@ -17,15 +17,13 @@ load("@rules_jvm_external//:defs.bzl", "artifact")
 load("//bazel:module.bzl", "noel_module")
 
 noel_module(
-    name = "settings",
+    name = "client",
     resources = glob(["resources/**"]),
-    strip_prefix = "modules/settings",
+    strip_prefix = "modules/http/client",
     srcs = glob(["src/**/*.java"]),
     deps = [
-        artifact("tools.jackson.dataformat:jackson-dataformat-yaml:3.0.1"),
-        artifact("tools.jackson.core:jackson-databind:3.0.1"),
+        artifact("com.squareup.okhttp3:okhttp-jvm"),
         artifact("org.jetbrains:annotations"),
         artifact("com.google.inject:guice"),
-        artifact("org.slf4j:slf4j-api"),
     ]
 )
