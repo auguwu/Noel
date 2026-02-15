@@ -15,12 +15,29 @@
 
 package dev.floofy.noel.pinecone.impl;
 
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import dev.floofy.noel.Pinecone;
 import dev.floofy.noel.pinecone.AbstractSlashCommand;
+import dev.floofy.noel.pinecone.Option;
+import dev.floofy.noel.pinecone.java.Function4;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
+import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -32,8 +49,112 @@ public final class PineconeImpl extends ListenerAdapter implements Pinecone {
     private final ExecutorService executor = Executors.newCachedThreadPool((runnable) -> new Thread(runnable, "Noel-CommandExecution"));
     private final AtomicBoolean registered = new AtomicBoolean();
 
+    private Set<AbstractSlashCommand> commands;
+    private Injector injector;
+
+    @Inject
+    PineconeImpl(@NotNull Set<AbstractSlashCommand> commands, @NotNull Injector injector) {
+        this.injector = injector;
+        this.commands = commands;
+    }
+
+    @Override
+    public void onReady(@NotNull ReadyEvent event) {
+        if (!registered.compareAndSet(false, true)) return;
+
+        final JDA jda = event.getJDA();
+        LOG.info("Preparing to register {} slash commands", commands.size());
+
+        CommandListUpdateAction globalCommands = jda.updateCommands();
+        final HashMap<Long, CommandListUpdateAction> guildOnlySlashCommands = new HashMap<>();
+
+        for (AbstractSlashCommand command: commands) {
+            final var info = command.getInfo();
+            final var data = Commands.slash(info.name(), info.description());
+
+            attachSubcommands(command, data);
+            addOptions(command.getOptions(), (type, name, description, required) -> {
+                data.addOption(type, name, description, required);
+                return null;
+            });
+
+            if (info.onlyInGuilds().length == 0) {
+                LOG.info("Registering global slash command /{}", info.name());
+                globalCommands = globalCommands.addCommands(data);
+            } else {
+                LOG.info("Registering guild-only slash command /{} in guilds: [{}]",
+                        info.name(),
+                        String.join(", ", Arrays.stream(info.onlyInGuilds())
+                                .mapToObj(Long::toString)
+                                .toList()));
+
+                for (long id: info.onlyInGuilds()) {
+                    final Guild guild = jda.getGuildById(id);
+                    if (guild == null) {
+                        LOG.warn("skipping registration as Noel is not in server");
+                        continue;
+                    }
+
+                    final var commands = guildOnlySlashCommands.getOrDefault(guild.getIdLong(), guild.updateCommands());
+                    guildOnlySlashCommands.put(guild.getIdLong(), commands.addCommands(data));
+                }
+            }
+        }
+
+        globalCommands.queue((commands) -> {
+            LOG.info("Successfully upserted or updated {} global commands", commands.size());
+        });
+
+        for (var commands: guildOnlySlashCommands.values()) {
+            commands.queue((cmds) -> {
+                LOG.info("Successfully upserted or updated {} guild only commands", cmds.size());
+            });
+        }
+    }
+
+    @Override
+    public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
+        LOG.info("received slash command event :: /{} by {}", event.getName(), event.getInteraction().getMember());
+
+        final var command = getSlashCommands()
+                .stream()
+                .filter(cmd -> cmd.getInfo().name().equals(event.getName()))
+                .findFirst();
+
+        if (command.isEmpty()) {
+            event.reply(String.format(":question: **Unknown slash command: /%s", event.getName())).setEphemeral(true).queue();
+            return;
+        }
+
+        executor.execute(() -> Dispatcher.dispatch(command.get(), new CommandContextImpl(event.getInteraction(), this)));
+    }
+
     @Override
     public Set<AbstractSlashCommand> getSlashCommands() {
-        return Set.of();
+        return commands;
+    }
+
+    void attachSubcommands(AbstractSlashCommand command, SlashCommandData data) {
+        for (var entry: command.getSubcommands().entrySet()) {
+            final SubcommandData subData = new SubcommandData(entry.getKey(), entry.getValue().getInfo().description());
+            addOptions(entry.getValue().getOptions(), (type, name, description, required) -> {
+                subData.addOption(type, name, description, required);
+                return null;
+            });
+
+            data.addSubcommands(subData);
+        }
+    }
+
+    void addOptions(List<Option> options, Function4<OptionType, String, String, Boolean, Void> addOption) {
+        for (Option option: options) {
+            final dev.floofy.noel.pinecone.annotations.Option info = option.getInfo();
+            addOption.invoke(
+                info.type(),
+                info.name(),
+                info.description(),
+                info.required()
+            );
+        }
     }
 }

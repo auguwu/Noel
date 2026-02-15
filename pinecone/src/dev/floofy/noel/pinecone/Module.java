@@ -25,12 +25,13 @@ import org.jetbrains.annotations.NotNull;
 
 @dev.floofy.noel.modules.annotations.Module(
         name = "pinecone",
-        description = "Module that registers Pinecone, the slash command framework that powers everything"
+        description = "Module that registers Pinecone, the slash command framework that powers everything",
+        priority = 250
 )
 public class Module extends AbstractNoelModule {
     @Override
     protected void configure() {
-        bind(Pinecone.class).to(PineconeImpl.class).asEagerSingleton();
+        bind(Pinecone.class).to(PineconeImpl.class);
     }
 
     @Initializer

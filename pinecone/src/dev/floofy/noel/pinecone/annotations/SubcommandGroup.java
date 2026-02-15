@@ -22,7 +22,14 @@ import java.lang.annotation.Target;
 
 /// Marks a class as a subcommand group. All registered methods with the [Subcommand] annotation
 /// will be inside of this subcommand group.
+///
+/// Subcommand groups will be only detectable in nested [AbstractSlashCommand][dev.floofy.noel.pinecone.AbstractSlashCommand]s.
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface SubcommandGroup {
+    /// The name of this subcommand group
+    String name();
+
+    /// A little description about this subcommand group
+    String description() default "No description available";
 }

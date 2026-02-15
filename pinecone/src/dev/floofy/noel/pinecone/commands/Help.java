@@ -45,7 +45,7 @@ public class Help extends AbstractSlashCommand {
                     .addComponents(List.of(display))
                     .build();
 
-            context.getInteraction().reply(message).queue();
+            context.reply(message).queue();
             return;
         }
 
@@ -57,8 +57,7 @@ public class Help extends AbstractSlashCommand {
 
         if (slashCommandOpt.isEmpty()) {
             context
-                    .getInteraction()
-                    .reply(String.format(":question: **~** unknown command: `%s`", command.get()))
+                    .replyFormat(":question: **~** unknown command: `%s`", command.get())
                     .setEphemeral(true)
                     .queue();
 
@@ -72,13 +71,13 @@ public class Help extends AbstractSlashCommand {
                 .addComponents(List.of(display))
                 .build();
 
-        context.getInteraction().reply(message).queue();
+        context.reply(message).queue();
     }
 
     @SuppressWarnings("DuplicatedCode")
     TextDisplay getHelpDisplayText(CommandContext context) {
-        final var guild = context.getInteraction().getGuild();
-        final var self = context.getInteraction().getJDA().getSelfUser();
+        final var guild = context.getGuild();
+        final var self = context.getSelfUser();
         assert guild != null : "guild should exist";
 
         final var commands = context.getPinecone().getSlashCommands();
@@ -129,11 +128,6 @@ public class Help extends AbstractSlashCommand {
         builder.append("`\n> *");
         builder.append(slashCommand.getInfo().description());
         builder.append("*\n\n");
-
-        final var subcommands = slashCommand.getSubcommands();
-        if (!subcommands.isEmpty()) {
-            builder.append("### Subcommands");
-        }
 
         return TextDisplay.of(builder.toString());
     }

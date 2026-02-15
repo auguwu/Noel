@@ -98,6 +98,8 @@ public final class Noel {
         ).toList());
 
         for (AbstractNoelModule mod: modules) {
+            LOG.info("Located module {}", mod.getClass());
+
             final var initMethod = mod.getInitializerMethod();
             if (initMethod != null && initMethod.canAccess(mod)) {
                 LOG.trace("calling initializer method of class {}", getClass().getName());

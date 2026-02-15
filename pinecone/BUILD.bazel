@@ -14,16 +14,16 @@
 # limitations under the License.
 
 load("@rules_jvm_external//:defs.bzl", "artifact")
-load("@rules_java//java:defs.bzl", "java_library")
+load("//bazel:module.bzl", "noel_module")
 
-java_library(
+noel_module(
     name = "pinecone",
-    srcs = glob(["src/dev/floofy/noel/**/*.java"]),
     resources = glob(["resources/**"]),
-    resource_strip_prefix = "pinecone",
-    visibility = ["//visibility:public"],
+    strip_prefix = "pinecone",
+    srcs = glob(["src/**/*.java"]),
     deps = [
-        "//modules",
+        "//modules/settings",
+        "//bot",
 
         artifact("org.jetbrains:annotations"),
         artifact("com.google.inject:guice"),

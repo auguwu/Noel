@@ -18,6 +18,7 @@ package dev.floofy.noel.pinecone;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.List;
 
 /// Information about a slash command's subcommand.
@@ -39,11 +40,27 @@ public final class Subcommand {
         this.info = info;
     }
 
+    public List<Option> getOptions() {
+        return Collections.unmodifiableList(options);
+    }
+
     public dev.floofy.noel.pinecone.annotations.Subcommand getInfo() {
         return info;
     }
 
     public void invoke(@NotNull CommandContext context) throws Exception {
-        final var interaction = context.getInteraction();
+        final Object[] args = new Object[methodHandle.getParameterCount()];
+        args[0] = context;
+
+        for (Option option: getOptions()) {
+            try {
+                option.resolveInto(context, null, args);
+            } catch (Exception e) {
+                context.reply(":pensive: **^=~=^** failed to run subcommand, try again later").setEphemeral(true).queue();
+                return;
+            }
+        }
+
+        methodHandle.invoke(info, args);
     }
 }

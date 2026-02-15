@@ -15,76 +15,94 @@
 
 package dev.floofy.noel.pinecone;
 
+import dev.floofy.noel.pinecone.internals.options.FieldTarget;
+import dev.floofy.noel.pinecone.internals.options.ParameterTarget;
+import dev.floofy.noel.pinecone.internals.options.Resolver;
+import dev.floofy.noel.pinecone.internals.options.Target;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.util.Optional;
 
-public class Option {
+public final class Option {
+    private static final Logger log = LoggerFactory.getLogger(Option.class);
     private final dev.floofy.noel.pinecone.annotations.Option info;
-    private final Object instance;
-    private final Field field;
+    private final Class<?> resolvedClass;
+    private final boolean isOptionalType;
+    private final Resolver resolver;
+    private final Target target;
 
-    Option(
-        @NotNull dev.floofy.noel.pinecone.annotations.Option info,
-        @NotNull Object instance,
-        @NotNull Field field
+    @ApiStatus.Internal
+    public Option(
+            @NotNull dev.floofy.noel.pinecone.annotations.Option info,
+            @NotNull Class<?> resolvedClass,
+            @NotNull Target target,
+            boolean isOptionalType
     ) {
         this.info = info;
-        this.field = field;
-        this.instance = instance;
+        this.resolvedClass = resolvedClass;
+        this.isOptionalType = isOptionalType;
+        this.resolver = createResolverForClass(resolvedClass);
+        this.target = target;
     }
 
-    public void resolve(@NotNull CommandContext context) throws Exception {
-        field.setAccessible(true);
-
-        final var option = context.getInteraction().getOption(info.name());
-        if (option == null) {
-            if (Optional.class.isAssignableFrom(field.getType())) {
-                field.set(instance, Optional.empty());
-                return;
-            } else {
-                throw new RequiredOptionNotFoundException(info.name());
-            }
-        }
-
-        Class<?> innerType = (Class<?>)((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
-        if (Optional.class.isAssignableFrom(field.getType())) {
-            field.set(instance, Optional.of(resolveValueFromClass(option, innerType)));
-        } else {
-            field.set(instance, resolveValueFromClass(option, field.getType()));
-        }
-    }
-
-    Object resolveValueFromClass(OptionMapping mapping, Class<?> type) {
-        Object found;
+    public static Resolver createResolverForClass(Class<?> type) {
         if (type == String.class) {
-            found = mapping.getAsString();
+            return OptionMapping::getAsString;
         } else if (type == long.class) {
-            found = mapping.getAsLong();
+            return OptionMapping::getAsLong;
         } else if (type == double.class) {
-            found = mapping.getAsDouble();
+            return OptionMapping::getAsDouble;
         } else if (type == int.class) {
-            found = mapping.getAsInt();
+            return OptionMapping::getAsInt;
         } else if (type == boolean.class) {
-            found = mapping.getAsBoolean();
+            return OptionMapping::getAsBoolean;
         } else if (type == Member.class) {
-            found = mapping.getAsMember();
+            return OptionMapping::getAsMember;
         } else if (type == User.class) {
-            found = mapping.getAsUser();
+            return OptionMapping::getAsUser;
         } else if (type == IMentionable.class) {
-            found = mapping.getAsMentionable();
+            return OptionMapping::getAsMentionable;
         } else if (type == Message.Attachment.class) {
-            found = mapping.getAsAttachment();
+            return OptionMapping::getAsAttachment;
         } else if (type == Role.class) {
-            found = mapping.getAsRole();
-        } else {
-            throw new IllegalStateException(String.format("unable to map mapping to class `%s'", type.getName()));
+            return OptionMapping::getAsRole;
         }
 
-        return type.cast(found);
+        throw new IllegalStateException(String.format("unable to map mapping to class `%s'", type.getName()));
+    }
+
+    @NotNull
+    public dev.floofy.noel.pinecone.annotations.Option getInfo() {
+        return info;
+    }
+
+    public void resolveInto(@NotNull CommandContext context, @Nullable Object instance, @Nullable Object[] args) throws Exception {
+        final OptionMapping mapping = context.getInteraction().getOption(info.name());
+        Object value = null;
+
+        if (mapping != null) {
+            if (isOptionalType) {
+                value = Optional.of(resolver.resolve(mapping));
+            }
+        } else if (isOptionalType) {
+            value = Optional.empty();
+        }
+
+        if (target instanceof ParameterTarget param) {
+            assert args != null : "for `ParameterTarget', expected `args' to not be null";
+            param.inject(args, value);
+        } else if (target instanceof FieldTarget field) {
+            assert instance != null : "for `FieldTarget', expected `instance' to not be null";
+            field.inject(instance, value);
+        }
     }
 }

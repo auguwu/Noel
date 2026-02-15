@@ -13,22 +13,8 @@
 /// See the License for the specific language governing permissions and
 /// limitations under the License.
 
-package dev.floofy.noel.pinecone.commands;
+package dev.floofy.noel.pinecone.java;
 
-import com.google.inject.multibindings.Multibinder;
-import dev.floofy.noel.modules.AbstractNoelModule;
-import dev.floofy.noel.pinecone.AbstractSlashCommand;
-
-@dev.floofy.noel.modules.annotations.Module(
-        name = "commands:general",
-        description = "General commands that the framework provides",
-        priority = 100
-)
-public final class Module extends AbstractNoelModule {
-    @Override
-    protected void configure() {
-        final Multibinder<AbstractSlashCommand> binder = Multibinder.newSetBinder(binder(), AbstractSlashCommand.class);
-        binder.addBinding().to(Help.class);
-        binder.addBinding().to(Ping.class);
-    }
+public interface Function4<P1, P2, P3, P4, Ret> {
+    Ret invoke(P1 p1, P2 p2, P3 p3, P4 p4);
 }

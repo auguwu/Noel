@@ -50,11 +50,7 @@ public final class Settings {
         Objects.requireNonNull(settings);
 
         var raw = JSONPath.from(settings, setting.getName());
-        if (raw.isEmpty()) {
-            return null;
-        }
-
-        return setting.getConverter().apply(raw.get());
+        return raw.map(o -> setting.getConverter().apply(o)).orElse(null);
     }
 
     @NotNull

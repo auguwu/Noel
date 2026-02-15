@@ -153,12 +153,11 @@ public final class EventListener extends ListenerAdapter {
             rotatePresenceTask.cancel(false);
         }
 
-        rotatePresence();
-        rotatePresenceTask = scheduler.scheduleAtFixedRate(
+        rotatePresenceTask = scheduler.scheduleWithFixedDelay(
                 this::rotatePresence,
-                15,
-                30,
-                TimeUnit.SECONDS
+                0,
+                5,
+                TimeUnit.MINUTES
         );
     }
 

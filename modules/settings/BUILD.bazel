@@ -15,7 +15,6 @@
 
 load("@rules_jvm_external//:defs.bzl", "artifact")
 load("//bazel:module.bzl", "noel_module")
-
 noel_module(
     name = "settings",
     resources = glob(["resources/**"]),
@@ -29,3 +28,4 @@ noel_module(
         artifact("org.slf4j:slf4j-api"),
     ]
 )
+

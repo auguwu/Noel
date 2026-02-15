@@ -15,18 +15,23 @@
 
 package dev.floofy.noel.pinecone;
 
+import com.google.inject.Injector;
+import dev.floofy.Noel;
 import dev.floofy.noel.pinecone.annotations.SlashCommand;
-import dev.floofy.noel.pinecone.annotations.SubcommandGroup;
+import dev.floofy.noel.pinecone.internals.Utilities;
+import dev.floofy.noel.pinecone.internals.options.FieldTarget;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 import java.util.*;
 
 /// Represents a root slash command that has no subcommands associated with it.
 public abstract class AbstractSlashCommand {
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractSlashCommand.class);
+
+    private ArrayList<SubcommandGroup> subcommandGroups = null;
     private HashMap<String, Subcommand> subcommands = null;
     private ArrayList<Option> options = null;
     private SlashCommand info = null;
@@ -50,78 +55,90 @@ public abstract class AbstractSlashCommand {
         return info;
     }
 
-    public boolean isSubcommandGroup() {
-        return getClass().isAnnotationPresent(SubcommandGroup.class);
-    }
+    @NotNull
+    public List<SubcommandGroup> getSubcommandGroups() {
+        if (subcommandGroups == null) {
+            subcommandGroups = new ArrayList<>();
 
-    public Map<String, Subcommand> getSubcommands() {
-        if (subcommands == null) {
-            subcommands = new HashMap<>();
+            LOG.trace("Processing subcommand groups for class");
 
-            log.trace("Processing subcommands for class");
-            for (Method method: getClass().getDeclaredMethods()) {
-                final var annot = method.getAnnotation(dev.floofy.noel.pinecone.annotations.Subcommand.class);
+            final Injector injector = Noel.getInstance().getInjector();
+            for (Class<?> nestedClass: getClass().getDeclaredClasses()) {
+                final var annot = nestedClass.getAnnotation(dev.floofy.noel.pinecone.annotations.SubcommandGroup.class);
                 if (annot == null) {
                     continue;
                 }
 
-                log.trace("Found method {} with @Subcommand annotation", method.getName());
-                final var fields = method.getParameters();
-                if (fields.length == 0) {
-                    log.warn("Method {} is not a viable subcommand: has no parameters", method.getName());
+                LOG.trace("Found @SubcommandGroup with name `{}' in class `{}'", annot.name(), nestedClass);
+                if (!Modifier.isStatic(nestedClass.getModifiers())) {
+                    LOG.warn("Class `{}' was not marked `static`, skipping", nestedClass);
                     continue;
                 }
 
-                if (!CommandContext.class.isAssignableFrom(fields[0].getType())) {
-                    log.warn("Method {} is not a viable subcommand: first argument was not of class {} but {} instead",
-                            method.getName(),
-                            CommandContext.class.getName(),
-                            fields[0].getType());
-
-                    continue;
-                }
-
-                boolean valid = true;
-                for (var param: fields) {
-                    if (!param.isAnnotationPresent(dev.floofy.noel.pinecone.annotations.Option.class)) {
-                        log.warn("Method {} is not a viable subcommand: argument by name `{}' doesn't have `@Option` available",
-                                method.getName(),
-                                param.getName());
-
-                        valid = false;
-                    }
-                }
-
-                if (valid) {
-                    final var name = annot.name().isEmpty()
-                            ? method.getName()
-                            : annot.name();
-
-                    subcommands.put(name, new Subcommand(annot, options, method, this));
-                }
+                Object instance = injector.getInstance(nestedClass);
+                final var subcommands = Utilities.collectSubcommands(nestedClass, (info, method, options) -> new Subcommand(info, options, method, instance));
+                subcommandGroups.add(new SubcommandGroup(annot, nestedClass, subcommands));
             }
+        }
+
+        return subcommandGroups;
+    }
+
+    @NotNull
+    public Map<String, Subcommand> getSubcommands() {
+        if (subcommands == null) {
+            subcommands = Utilities.collectSubcommands(getClass(), (info, method, options) -> new Subcommand(info, options, method, this));
         }
 
         return Collections.unmodifiableMap(subcommands);
     }
 
+    @NotNull
     public List<Option> getOptions() {
-        if (isSubcommandGroup()) {
+        if (subcommandGroups != null && !subcommandGroups.isEmpty()) {
             return Collections.emptyList();
         }
 
         if (options == null) {
             options = new ArrayList<>();
 
-            log.trace("Processing options for class");
+            LOG.trace("Processing options for class");
             for (Field field: getClass().getDeclaredFields()) {
                 final var annot = field.getAnnotation(dev.floofy.noel.pinecone.annotations.Option.class);
                 if (annot == null) {
                     continue;
                 }
 
-                log.trace("Found field `{}' with @Option annotation", field.getName());
-                options.add(new Option(annot, this, field));
+                LOG.trace("Found field `{}' with @Option annotation", field.getName());
+
+                Type genericType = field.getGenericType();
+                Class<?> rawType = field.getType();
+                final boolean isOptionalType = Optional.class.isAssignableFrom(rawType);
+
+                Class<?> resolvedType;
+                if (Optional.class.isAssignableFrom(rawType)) {
+                    if (genericType instanceof ParameterizedType pt) {
+                        Type innerType = pt.getActualTypeArguments()[0];
+                        if (innerType instanceof Class<?> cls) {
+                            resolvedType = cls;
+                        } else if (innerType instanceof ParameterizedType innerPt) {
+                            resolvedType = (Class<?>) innerPt.getRawType();
+                        } else {
+                            throw new IllegalStateException("Unsupported generic type: " + innerType);
+                        }
+                    } else {
+                        throw new IllegalStateException("Optional field missing generic type: " + field);
+                    }
+                } else {
+                    resolvedType = rawType;
+                }
+
+                options.add(new Option(
+                        annot,
+                        resolvedType,
+                        new FieldTarget(field),
+                        isOptionalType
+                ));
             }
         }
 
