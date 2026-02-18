@@ -28,7 +28,10 @@ public final class Module extends AbstractNoelModule {
     @Override
     protected void configure() {
         final Multibinder<AbstractSlashCommand> binder = Multibinder.newSetBinder(binder(), AbstractSlashCommand.class);
+
         binder.addBinding().to(Help.class);
         binder.addBinding().to(Ping.class);
+        binder.addBinding().to(Uptime.class);
+        binder.addBinding().to(AboutMe.class);
     }
 }

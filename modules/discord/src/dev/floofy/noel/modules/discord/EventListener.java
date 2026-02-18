@@ -82,6 +82,11 @@ public final class EventListener extends ListenerAdapter {
 
         final ArrayList<PresenceMeta> meta = new ArrayList<>();
         for (Object payload: ((List<?>) value)) {
+            if (payload instanceof String) {
+                meta.add(new PresenceMeta((String)payload, Activity.ActivityType.PLAYING));
+                continue;
+            }
+
             if (!(payload instanceof Map<?, ?> map)) {
                 throw new IllegalArgumentException("list element is not a map");
             }
@@ -135,9 +140,9 @@ public final class EventListener extends ListenerAdapter {
     @Override
     public void onShutdown(@NotNull ShutdownEvent event) {
         log.warn("received shutdown event (closeCode={})", event.getCloseCode());
-        if (rotatePresenceTask != null && !rotatePresenceTask.isCancelled()) {
-            rotatePresenceTask.cancel(false);
-        }
+//        if (rotatePresenceTask != null && !rotatePresenceTask.isCancelled()) {
+//            rotatePresenceTask.cancel(false);
+//        }
     }
 
     @Override
@@ -148,21 +153,23 @@ public final class EventListener extends ListenerAdapter {
                 self.getDiscriminator(),
                 self.getId());
 
-        // Cancel existing task if reconnect
-        if (rotatePresenceTask != null && !rotatePresenceTask.isCancelled()) {
-            rotatePresenceTask.cancel(false);
-        }
+        rotatePresence();
 
-        rotatePresenceTask = scheduler.scheduleWithFixedDelay(
-                this::rotatePresence,
-                0,
-                5,
-                TimeUnit.MINUTES
-        );
+//        // Cancel existing task if reconnect
+//        if (rotatePresenceTask != null && !rotatePresenceTask.isCancelled()) {
+//            rotatePresenceTask.cancel(false);
+//        }
+//
+//        rotatePresenceTask = scheduler.scheduleWithFixedDelay(
+//                this::rotatePresence,
+//                0,
+//                5,
+//                TimeUnit.MINUTES
+//        );
     }
 
     void rotatePresence() {
-        final var presences = settings.get(listOfPresences);
+        final var presences = settings.getOrDefault(listOfPresences, List.of());
         final JDA jda = this.jda.get();
 
         if (presences.isEmpty()) {

@@ -82,7 +82,7 @@ public final class Module extends AbstractNoelModule {
 
         @Override
         public JDA get() {
-            return JDABuilder.createLight(settings.get(token), List.of(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS))
+            return JDABuilder.createLight(settings.get(token, true), List.of(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS))
                     .setAutoReconnect(true)
                     .setStatus(OnlineStatus.IDLE)
                     .setEnableShutdownHook(false)

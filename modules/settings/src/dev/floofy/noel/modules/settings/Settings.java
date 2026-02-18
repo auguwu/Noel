@@ -47,9 +47,17 @@ public final class Settings {
 
     @Nullable
     public <T> T get(@NotNull Setting<T> setting) {
+        return get(setting, false);
+    }
+
+    public <T> T get(@NotNull Setting<T> setting, boolean required) {
         Objects.requireNonNull(settings, "settings was not initialized");
 
         var raw = JSONPath.from(settings, setting.getName());
+        if (required && raw.isEmpty()) {
+            throw new RuntimeException(String.format("Configuration setting `%s' is required", setting.getName()));
+        }
+
         return raw.map(o -> setting.getConverter().apply(o)).orElse(null);
     }
 

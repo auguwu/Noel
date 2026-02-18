@@ -53,7 +53,7 @@ public final class Module extends AbstractNoelModule {
         @Override
         public MongoClient get() {
             return MongoClients.create(MongoClientSettings.builder()
-                    .applyConnectionString(new ConnectionString(Objects.requireNonNull(settings.get(CONNECTION_URI))))
+                    .applyConnectionString(new ConnectionString(settings.get(CONNECTION_URI, true)))
                     .applicationName("Noel")
                     .build());
         }
@@ -72,7 +72,7 @@ public final class Module extends AbstractNoelModule {
 
         @Override
         public MongoDatabase get() {
-            return client.getDatabase(Objects.requireNonNull(settings.get(DATABASE_NAME)));
+            return client.getDatabase(settings.get(DATABASE_NAME, true));
         }
     }
 }

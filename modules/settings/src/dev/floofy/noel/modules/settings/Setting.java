@@ -20,8 +20,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.Function;
 
 public final class Setting<T> {
-    private Function<Object, T> converter;
-    private String name;
+    private final Function<Object, T> converter;
+    private final String name;
 
     private Setting(@NotNull String name, Function<Object, T> converter) {
         this.converter = converter;
@@ -29,7 +29,7 @@ public final class Setting<T> {
     }
 
     public static <T> Setting<T> of(@NotNull String key, Function<Object, T> converter) {
-        return new Setting(key, converter);
+        return new Setting<>(key, converter);
     }
 
     public static Setting<String> string(@NotNull String key) {

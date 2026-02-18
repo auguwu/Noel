@@ -20,12 +20,14 @@ import com.google.inject.Injector;
 import dev.floofy.noel.Pinecone;
 import dev.floofy.noel.pinecone.AbstractSlashCommand;
 import dev.floofy.noel.pinecone.Option;
+import dev.floofy.noel.pinecone.annotations.SlashCommand;
 import dev.floofy.noel.pinecone.java.Function4;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
@@ -110,6 +112,9 @@ public final class PineconeImpl extends ListenerAdapter implements Pinecone {
                 LOG.info("Successfully upserted or updated {} guild only commands", cmds.size());
             });
         }
+
+        cleanupOldCommands(jda);
+        registered.set(true);
     }
 
     @Override
@@ -155,6 +160,48 @@ public final class PineconeImpl extends ListenerAdapter implements Pinecone {
                 info.description(),
                 info.required()
             );
+        }
+    }
+
+    void cleanupOldCommands(@NotNull JDA jda) {
+        LOG.info("Cleaning up old global and global commands...");
+
+        final var currentSlashCommands = getSlashCommands()
+                .stream()
+                .map(cmd -> cmd.getInfo().name())
+                .toList();
+
+        jda.retrieveCommands().queue(commands -> {
+            for (Command cmd: commands) {
+                if (!currentSlashCommands.contains(cmd.getName())) {
+                    LOG.warn("Found obsolete global slash command: /{}", cmd.getName());
+                    cmd.delete().queue(
+                        success -> LOG.info("Deleted obsolete global slash command"),
+                        ex -> LOG.error("failed to delete slash command", ex)
+                    );
+                }
+            }
+        });
+
+        for (Guild guild: jda.getGuilds()) {
+            final var currentSlashCommandsForGuild = getSlashCommands()
+                    .stream()
+                    .map(AbstractSlashCommand::getInfo)
+                    .filter(info -> Arrays.stream(info.onlyInGuilds()).anyMatch(id -> guild.getIdLong() == id))
+                    .map(SlashCommand::name)
+                    .toList();
+
+            guild.retrieveCommands().queue(commands -> {
+                for (Command cmd: commands) {
+                    if (!currentSlashCommandsForGuild.contains(cmd.getName())) {
+                        LOG.warn("[{} ({})] Found obsolete guild-only slash command: /{}", guild.getName(), guild.getId(), cmd.getName());
+                        cmd.delete().queue(
+                                success -> LOG.info("[{} ({})] Deleted obsolete guild-only slash command", guild.getName(), guild.getId()),
+                                ex -> LOG.error("[{} ({})] failed to delete slash command", guild.getName(), guild.getId(), ex)
+                        );
+                    }
+                }
+            });
         }
     }
 }
