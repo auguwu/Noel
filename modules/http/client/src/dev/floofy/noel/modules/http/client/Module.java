@@ -16,13 +16,13 @@
 package dev.floofy.noel.modules.http.client;
 
 import dev.floofy.noel.modules.AbstractNoelModule;
+
 import okhttp3.OkHttpClient;
 
 @dev.floofy.noel.modules.annotations.Module(
         name = "http:client",
         description = "HTTP client module that allows an accessible `OkHttpClient`",
-        priority = 750
-)
+        priority = 750)
 public final class Module extends AbstractNoelModule {
     @Override
     protected void configure() {
@@ -32,9 +32,7 @@ public final class Module extends AbstractNoelModule {
     static class Provider implements com.google.inject.Provider<OkHttpClient> {
         @Override
         public OkHttpClient get() {
-            return new OkHttpClient.Builder()
-                    .followRedirects(true)
-                    .build();
+            return new OkHttpClient.Builder().followRedirects(true).build();
         }
     }
 }

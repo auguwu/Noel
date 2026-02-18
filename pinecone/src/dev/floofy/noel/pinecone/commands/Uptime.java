@@ -27,7 +27,10 @@ import java.util.concurrent.TimeUnit;
 public class Uptime extends AbstractSlashCommand {
     @Override
     public void execute(CommandContext context) throws Exception {
-        context.replyFormat(":timer: **%s**", formatDuration(System.currentTimeMillis() - BuildInfo.getStartedAt())).queue();
+        context.replyFormat(
+                        ":timer: **%s**",
+                        formatDuration(System.currentTimeMillis() - BuildInfo.getStartedAt()))
+                .queue();
     }
 
     String formatDuration(long millis) {
@@ -64,7 +67,8 @@ public class Uptime extends AbstractSlashCommand {
     }
 
     String article(String title, long time) {
-        return time > 1 ? String.format("%d %ss", time, title) : String.format("%d %s", time, title);
+        return time > 1
+                ? String.format("%d %ss", time, title)
+                : String.format("%d %s", time, title);
     }
 }
-

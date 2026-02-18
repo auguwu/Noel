@@ -17,11 +17,11 @@ package dev.floofy;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Module;
+
 import dev.floofy.noel.ExecutorsModule;
 import dev.floofy.noel.modules.AbstractNoelModule;
 import dev.floofy.noel.modules.ServiceLocator;
-import net.dv8tion.jda.api.JDA;
+
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +32,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -43,14 +42,14 @@ public final class Noel {
     private static Noel instance;
 
     static {
-        CODES.putAll(Map.of(
-                128, (i) -> i instanceof InternalError,
-                127, (i) -> i instanceof OutOfMemoryError,
-                126, (i) -> i instanceof StackOverflowError,
-                125, (i) -> i instanceof UnknownError,
-                124, (i) -> i instanceof IOError,
-                123, (i) -> i instanceof LinkageError
-        ));
+        CODES.putAll(
+                Map.of(
+                        128, (i) -> i instanceof InternalError,
+                        127, (i) -> i instanceof OutOfMemoryError,
+                        126, (i) -> i instanceof StackOverflowError,
+                        125, (i) -> i instanceof UnknownError,
+                        124, (i) -> i instanceof IOError,
+                        123, (i) -> i instanceof LinkageError));
 
         modules = ServiceLocator.loadModules();
     }
@@ -64,11 +63,13 @@ public final class Noel {
 
         LOG.warn("shutting down...");
         if (instance.injector == null) {
-            LOG.warn("will not shutdown as no Guice injector is available (required for module teardown)");
+            LOG.warn(
+                    "will not shutdown as no Guice injector is available (required for module"
+                        + " teardown)");
             return;
         }
 
-        for (AbstractNoelModule mod: getInstance().getModules()) {
+        for (AbstractNoelModule mod : getInstance().getModules()) {
             LOG.warn("tearing down module {}[{}]", mod.getInfo().name(), mod.getClass().getName());
 
             final var teardownMethod = mod.getTeardownMethod();
@@ -99,10 +100,9 @@ public final class Noel {
         installDefaultThreadExceptionHandler();
 
         assert injector == null : "`bootstrap' cannot be called more than twice";
-        injector = Guice.createInjector(Stream.concat(
-                Stream.of(new ExecutorsModule()),
-                modules.stream()
-        ).toList());
+        injector =
+                Guice.createInjector(
+                        Stream.concat(Stream.of(new ExecutorsModule()), modules.stream()).toList());
 
         for (AbstractNoelModule mod : modules) {
             LOG.info("Located module {}", mod.getClass());
@@ -125,7 +125,6 @@ public final class Noel {
             }
         }
 
-
         Thread.currentThread().join();
     }
 
@@ -145,20 +144,29 @@ public final class Noel {
     }
 
     private void installDefaultThreadExceptionHandler() {
-        Thread.setDefaultUncaughtExceptionHandler((thread, ex) -> {
-            if (ex instanceof Error) {
-                LOG.error("uncaught fatal exception in thread {} ({}):", thread.getName(), thread.threadId(), ex);
+        Thread.setDefaultUncaughtExceptionHandler(
+                (thread, ex) -> {
+                    if (ex instanceof Error) {
+                        LOG.error(
+                                "uncaught fatal exception in thread {} ({}):",
+                                thread.getName(),
+                                thread.threadId(),
+                                ex);
 
-                for (var entry: CODES.entrySet()) {
-                    if (entry.getValue().apply(ex)) {
-                        Runtime.getRuntime().halt(entry.getKey());
+                        for (var entry : CODES.entrySet()) {
+                            if (entry.getValue().apply(ex)) {
+                                Runtime.getRuntime().halt(entry.getKey());
+                            }
+                        }
+
+                        System.exit(1);
+                    } else {
+                        LOG.error(
+                                "uncaught user-land exception in thread {} ({}):",
+                                thread.getName(),
+                                thread.threadId(),
+                                ex);
                     }
-                }
-
-                System.exit(1);
-            } else {
-                LOG.error("uncaught user-land exception in thread {} ({}):", thread.getName(), thread.threadId(), ex);
-            }
-        });
+                });
     }
 }

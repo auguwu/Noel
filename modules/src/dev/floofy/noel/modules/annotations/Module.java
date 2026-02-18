@@ -20,18 +20,22 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * Information about a module. This can be accessed on Discord via the `/modules` slash command.
- */
+/** Information about a module. This can be accessed on Discord via the `/modules` slash command. */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Module {
-    /** The name of this module. You can view information about this module with the <code>/module [name]</code> slash command. */
+    /**
+     * The name of this module. You can view information about this module with the <code>
+     * /module [name]</code> slash command.
+     */
     String name();
 
     /** Description about this module */
     String description();
 
-    /** The priority that this module should be loaded from. The higher the number, the higher it'll get loaded faster. */
+    /**
+     * The priority that this module should be loaded from. The higher the number, the higher it'll
+     * get loaded faster.
+     */
     int priority() default 0;
 }

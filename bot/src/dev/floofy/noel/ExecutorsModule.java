@@ -31,18 +31,24 @@ public final class ExecutorsModule implements Module {
     @Provides
     @Singleton
     ScheduledExecutorService scheduledExecutorService() {
-        return Executors.newScheduledThreadPool(2, runner -> new Thread(runner, "Noel-ScheduledExecutorService"));
+        return Executors.newScheduledThreadPool(
+                2, runner -> new Thread(runner, "Noel-ScheduledExecutorService"));
     }
 
     @Provides
     @Singleton
     ExecutorService executorService() {
-        return Executors.newCachedThreadPool((runnable) -> {
-            final Thread thread = new Thread(runnable, String.format("Noel-ExecutorService[%d]", threadCount.addAndGet(1)));
-            thread.setDaemon(true);
+        return Executors.newCachedThreadPool(
+                (runnable) -> {
+                    final Thread thread =
+                            new Thread(
+                                    runnable,
+                                    String.format(
+                                            "Noel-ExecutorService[%d]", threadCount.addAndGet(1)));
+                    thread.setDaemon(true);
 
-            return thread;
-        });
+                    return thread;
+                });
     }
 
     @Override

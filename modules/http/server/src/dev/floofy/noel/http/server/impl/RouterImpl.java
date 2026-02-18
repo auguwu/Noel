@@ -19,17 +19,18 @@ import dev.floofy.noel.http.server.HttpMethod;
 import dev.floofy.noel.http.server.Request;
 import dev.floofy.noel.http.server.Response;
 import dev.floofy.noel.http.server.Router;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 public final class RouterImpl implements Router {
     private final HashMap<String, BiConsumer<Request, Response>> routes = new HashMap<>();
 
     public boolean executeRequest(@NotNull Request request, @NotNull Response response) {
-        final var handler = routes.get(String.format("%s:%s", request.getMethod(), request.getPath()));
+        final var handler =
+                routes.get(String.format("%s:%s", request.getMethod(), request.getPath()));
         if (handler == null) {
             return false;
         }

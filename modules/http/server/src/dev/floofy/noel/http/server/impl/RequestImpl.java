@@ -17,8 +17,11 @@ package dev.floofy.noel.http.server.impl;
 
 import dev.floofy.noel.http.server.HttpMethod;
 import dev.floofy.noel.http.server.Request;
+
 import io.netty.handler.codec.http.FullHttpRequest;
+
 import org.jetbrains.annotations.NotNull;
+
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -35,8 +38,7 @@ public class RequestImpl implements Request {
             @NotNull FullHttpRequest request,
             @NotNull HttpMethod method,
             @NotNull SocketAddress remoteAddress,
-            @NotNull ObjectMapper mapper
-    ) {
+            @NotNull ObjectMapper mapper) {
         this.remoteAddress = remoteAddress;
         objectMapper = mapper;
         this.method = method;

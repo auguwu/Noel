@@ -17,12 +17,14 @@ package dev.floofy.noel.http.server.impl;
 
 import dev.floofy.noel.http.server.Response;
 import dev.floofy.noel.http.server.ResponseAlreadyOutgoingException;
-import io.netty.buffer.ByteBuf;
+
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
+
 import org.jetbrains.annotations.NotNull;
+
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -71,13 +73,15 @@ public class ResponseImpl implements Response {
     public void sendText(String text) throws ResponseAlreadyOutgoingException {
         checkIfSent();
 
-        final FullHttpResponse response = new DefaultFullHttpResponse(
-                HttpVersion.HTTP_1_1,
-                status,
-                Unpooled.copiedBuffer(text, StandardCharsets.UTF_8)
-        );
+        final FullHttpResponse response =
+                new DefaultFullHttpResponse(
+                        HttpVersion.HTTP_1_1,
+                        status,
+                        Unpooled.copiedBuffer(text, StandardCharsets.UTF_8));
 
-        response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=utf-8").set(headers);
+        response.headers()
+                .set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=utf-8")
+                .set(headers);
         context.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
 
         sent = true;
@@ -88,13 +92,15 @@ public class ResponseImpl implements Response {
         checkIfSent();
 
         final String json = objectMapper.writeValueAsString(obj);
-        final FullHttpResponse response = new DefaultFullHttpResponse(
-                HttpVersion.HTTP_1_1,
-                status,
-                Unpooled.copiedBuffer(json, StandardCharsets.UTF_8)
-        );
+        final FullHttpResponse response =
+                new DefaultFullHttpResponse(
+                        HttpVersion.HTTP_1_1,
+                        status,
+                        Unpooled.copiedBuffer(json, StandardCharsets.UTF_8));
 
-        response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json; charset=utf-8").set(headers);
+        response.headers()
+                .set(HttpHeaderNames.CONTENT_TYPE, "application/json; charset=utf-8")
+                .set(headers);
         context.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
 
         sent = true;

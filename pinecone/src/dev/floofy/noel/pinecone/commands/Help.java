@@ -19,6 +19,7 @@ import dev.floofy.noel.pinecone.AbstractSlashCommand;
 import dev.floofy.noel.pinecone.CommandContext;
 import dev.floofy.noel.pinecone.annotations.Option;
 import dev.floofy.noel.pinecone.annotations.SlashCommand;
+
 import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 
@@ -29,8 +30,9 @@ import java.util.function.Function;
 
 @SlashCommand(
         name = "help",
-        description = "Displays a list of all the commands available or information about a single slash command"
-)
+        description =
+                "Displays a list of all the commands available or information about a single slash"
+                    + " command")
 public class Help extends AbstractSlashCommand {
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     @Option(name = "command", description = "slash command to provide information about")
@@ -40,24 +42,24 @@ public class Help extends AbstractSlashCommand {
     public void execute(CommandContext context) throws Exception {
         if (command.isEmpty()) {
             final var display = getHelpDisplayText(context);
-            final var message = new MessageCreateBuilder()
-                    .useComponentsV2()
-                    .addComponents(List.of(display))
-                    .build();
+            final var message =
+                    new MessageCreateBuilder()
+                            .useComponentsV2()
+                            .addComponents(List.of(display))
+                            .build();
 
             context.reply(message).queue();
             return;
         }
 
         final var commands = context.getPinecone().getSlashCommands();
-        final Optional<AbstractSlashCommand> slashCommandOpt = commands
-                .stream()
-                .filter(cmd -> cmd.getInfo().name().equals(command.get()))
-                .findAny();
+        final Optional<AbstractSlashCommand> slashCommandOpt =
+                commands.stream()
+                        .filter(cmd -> cmd.getInfo().name().equals(command.get()))
+                        .findAny();
 
         if (slashCommandOpt.isEmpty()) {
-            context
-                    .replyFormat(":question: **~** unknown command: `%s`", command.get())
+            context.replyFormat(":question: **~** unknown command: `%s`", command.get())
                     .setEphemeral(true)
                     .queue();
 
@@ -66,10 +68,11 @@ public class Help extends AbstractSlashCommand {
 
         final AbstractSlashCommand slashCommand = slashCommandOpt.get();
         final var display = getHelpDisplayTextForCommand(context, slashCommand);
-        final var message = new MessageCreateBuilder()
-                .useComponentsV2()
-                .addComponents(List.of(display))
-                .build();
+        final var message =
+                new MessageCreateBuilder()
+                        .useComponentsV2()
+                        .addComponents(List.of(display))
+                        .build();
 
         context.reply(message).queue();
     }
@@ -81,20 +84,24 @@ public class Help extends AbstractSlashCommand {
         assert guild != null : "guild should exist";
 
         final var commands = context.getPinecone().getSlashCommands();
-        final var globalCommands = commands.stream()
-                .filter(cmd -> cmd.getInfo().onlyInGuilds().length == 0)
-                .toList();
+        final var globalCommands =
+                commands.stream().filter(cmd -> cmd.getInfo().onlyInGuilds().length == 0).toList();
 
-        final var guildOnlyCommands = commands.stream()
-                .filter(cmd -> Arrays.stream(cmd.getInfo().onlyInGuilds()).anyMatch(id -> id == guild.getIdLong()))
-                .toList();
+        final var guildOnlyCommands =
+                commands.stream()
+                        .filter(
+                                cmd ->
+                                        Arrays.stream(cmd.getInfo().onlyInGuilds())
+                                                .anyMatch(id -> id == guild.getIdLong()))
+                        .toList();
 
         final StringBuilder builder = new StringBuilder();
         builder.append(String.format("## %s\n", self.getName()));
         builder.append("### Global Commands\n");
 
-        final var maxGlobalCommandLength = calculateMaxStringLength(globalCommands, cmd -> cmd.getInfo().name());
-        for (AbstractSlashCommand global: globalCommands) {
+        final var maxGlobalCommandLength =
+                calculateMaxStringLength(globalCommands, cmd -> cmd.getInfo().name());
+        for (AbstractSlashCommand global : globalCommands) {
             builder.append("* `/");
             builder.append(global.getInfo().name());
             builder.append('`');
@@ -107,8 +114,9 @@ public class Help extends AbstractSlashCommand {
             builder.append('\n');
             builder.append(String.format("## Commands for %s\n", guild.getName()));
 
-            final var maxGuildOnlyCommandSize = calculateMaxStringLength(guildOnlyCommands, cmd -> cmd.getInfo().name());
-            for (AbstractSlashCommand cmd: guildOnlyCommands) {
+            final var maxGuildOnlyCommandSize =
+                    calculateMaxStringLength(guildOnlyCommands, cmd -> cmd.getInfo().name());
+            for (AbstractSlashCommand cmd : guildOnlyCommands) {
                 builder.append("* `/");
                 builder.append(cmd.getInfo().name());
                 builder.append('`');
@@ -121,7 +129,8 @@ public class Help extends AbstractSlashCommand {
         return TextDisplay.of(builder.toString());
     }
 
-    TextDisplay getHelpDisplayTextForCommand(CommandContext context, AbstractSlashCommand slashCommand) {
+    TextDisplay getHelpDisplayTextForCommand(
+            CommandContext context, AbstractSlashCommand slashCommand) {
         final StringBuilder builder = new StringBuilder();
         builder.append("## Slash Command `/");
         builder.append(slashCommand.getInfo().name());
@@ -133,49 +142,44 @@ public class Help extends AbstractSlashCommand {
     }
 
     /*
-        final var msg = new StringBuilder();
-        msg.append("## slash command `/");
-        msg.append(cmd2.getInfo().name());
-        msg.append("`\n");
-        msg.append("> ");
-        msg.append(cmd2.getInfo().description());
+           final var msg = new StringBuilder();
+           msg.append("## slash command `/");
+           msg.append(cmd2.getInfo().name());
+           msg.append("`\n");
+           msg.append("> ");
+           msg.append(cmd2.getInfo().description());
 
-        var first = true;
-        final var maxOptLength = cmd2.getOptions().stream()
-                .map(opt -> opt.getInfo().name())
-                .mapToInt(String::length)
-                .max()
-                .orElse(0);
+           var first = true;
+           final var maxOptLength = cmd2.getOptions().stream()
+                   .map(opt -> opt.getInfo().name())
+                   .mapToInt(String::length)
+                   .max()
+                   .orElse(0);
 
-        for (var opt: cmd2.getOptions()) {
-            if (first) {
-                msg.append('\n');
-                msg.append("## Options\n");
+           for (var opt: cmd2.getOptions()) {
+               if (first) {
+                   msg.append('\n');
+                   msg.append("## Options\n");
 
-                first = false;
-            }
+                   first = false;
+               }
 
-            msg.append("* `");
-            msg.append(opt.getInfo().name());
-            msg.append('`');
-            msg.append(" (");
-            msg.append(opt.getInfo().type().name().toLowerCase(Locale.ROOT));
-            msg.append(")");
-            msg.repeat(' ', maxOptLength);
-            msg.append(opt.getInfo().description());
-            msg.append('\n');
-        }
+               msg.append("* `");
+               msg.append(opt.getInfo().name());
+               msg.append('`');
+               msg.append(" (");
+               msg.append(opt.getInfo().type().name().toLowerCase(Locale.ROOT));
+               msg.append(")");
+               msg.repeat(' ', maxOptLength);
+               msg.append(opt.getInfo().description());
+               msg.append('\n');
+           }
 
-        ctx.getInteraction().reply(new MessageCreateBuilder().useComponentsV2().addComponents(List.of(TextDisplay.of(msg.toString()))).build()).queue();
-    }
- */
-
+           ctx.getInteraction().reply(new MessageCreateBuilder().useComponentsV2().addComponents(List.of(TextDisplay.of(msg.toString()))).build()).queue();
+       }
+    */
 
     <T> int calculateMaxStringLength(List<T> list, Function<T, String> mapper) {
-        return list.stream()
-                .map(mapper)
-                .mapToInt(String::length)
-                .max()
-                .orElse(0);
+        return list.stream().map(mapper).mapToInt(String::length).max().orElse(0);
     }
 }

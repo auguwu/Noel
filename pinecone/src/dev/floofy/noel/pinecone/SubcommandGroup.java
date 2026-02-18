@@ -27,8 +27,7 @@ public class SubcommandGroup {
     SubcommandGroup(
             @NotNull dev.floofy.noel.pinecone.annotations.SubcommandGroup info,
             @NotNull Object instance,
-            @NotNull Map<String, Subcommand> subcommands
-    ) {
+            @NotNull Map<String, Subcommand> subcommands) {
         this.info = info;
         this.instance = instance;
         this.subcommands = subcommands;

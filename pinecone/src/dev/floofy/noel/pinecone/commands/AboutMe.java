@@ -20,6 +20,7 @@ import dev.floofy.noel.BuildInfo;
 import dev.floofy.noel.pinecone.AbstractSlashCommand;
 import dev.floofy.noel.pinecone.CommandContext;
 import dev.floofy.noel.pinecone.annotations.SlashCommand;
+
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDAInfo;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -34,14 +35,26 @@ public class AboutMe extends AbstractSlashCommand {
         final SelfUser self = context.getSelfUser();
         final var modules = Noel.getInstance().getModules();
 
-        final MessageEmbed embed = new EmbedBuilder()
-                .setAuthor(String.format("%s#%s", self.getName(), self.getDiscriminator()))
-                .setDescription("I am a simple utility bot that helps aid running this server")
-                .setColor(Color.decode("#f4b5d5"))
-                .addField("Modules", String.format("%d available", modules.size()), false)
-                .addField("Versions", String.format("<a:noel:843673536392724500> **%s+%s** | JDA: **%s** | Java: **%s** [%s]", BuildInfo.getVersion(), BuildInfo.getGitCommit(), JDAInfo.VERSION, System.getProperty("java.version"), System.getProperty("java.vendor")), false)
-                .setFooter("| https://github.com/auguwu/Noel", self.getAvatarUrl())
-                .build();
+        final MessageEmbed embed =
+                new EmbedBuilder()
+                        .setAuthor(String.format("%s#%s", self.getName(), self.getDiscriminator()))
+                        .setDescription(
+                                "I am a simple utility bot that helps aid running this server")
+                        .setColor(Color.decode("#f4b5d5"))
+                        .addField("Modules", String.format("%d available", modules.size()), true)
+                        .addField(
+                                "Versions",
+                                String.format(
+                                        "<a:noel:843673536392724500> **%s+%s** | JDA: **%s** |"
+                                            + " Java: **%s** [%s]",
+                                        BuildInfo.getVersion(),
+                                        BuildInfo.getGitCommit(),
+                                        JDAInfo.VERSION,
+                                        System.getProperty("java.version"),
+                                        System.getProperty("java.vendor")),
+                                true)
+                        .setFooter("| https://codeberg.org/Polarboi/Noel", self.getAvatarUrl())
+                        .build();
 
         context.replyEmbeds(embed).setEphemeral(true).queue();
     }

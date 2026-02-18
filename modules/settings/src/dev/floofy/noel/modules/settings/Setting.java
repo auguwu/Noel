@@ -37,17 +37,25 @@ public final class Setting<T> {
     }
 
     public static Setting<String> string(@NotNull String key, boolean required) {
-        return Setting.of(key, (value) -> {
-            if (required && value == null) {
-                throw new IllegalStateException(String.format("Expected configuration key `%s' to be present", key));
-            }
+        return Setting.of(
+                key,
+                (value) -> {
+                    if (required && value == null) {
+                        throw new IllegalStateException(
+                                String.format(
+                                        "Expected configuration key `%s' to be present", key));
+                    }
 
-            if (!(value instanceof String)) {
-                throw new IllegalStateException(String.format("Expected configuration value '%s' to be of string, received [%s] instead", key, value.getClass()));
-            }
+                    if (!(value instanceof String)) {
+                        throw new IllegalStateException(
+                                String.format(
+                                        "Expected configuration value '%s' to be of string,"
+                                            + " received [%s] instead",
+                                        key, value.getClass()));
+                    }
 
-            return (String)value;
-        });
+                    return (String) value;
+                });
     }
 
     public Function<Object, T> getConverter() {

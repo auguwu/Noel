@@ -28,7 +28,8 @@ import java.util.ServiceLoader;
  * A {@link ServiceLoader} for locating and initializing {@link AbstractNoelModule Noel modules}.
  */
 public final class ServiceLocator {
-    private static final ServiceLoader<AbstractNoelModule> locator = ServiceLoader.load(AbstractNoelModule.class);
+    private static final ServiceLoader<AbstractNoelModule> locator =
+            ServiceLoader.load(AbstractNoelModule.class);
     private static final Logger LOG = LoggerFactory.getLogger(ServiceLocator.class);
 
     public static List<AbstractNoelModule> loadModules() {
@@ -47,15 +48,22 @@ public final class ServiceLocator {
             try {
                 constructor = moduleClass.getDeclaredConstructor();
             } catch (NoSuchMethodException e) {
-                LOG.warn("not initializing module {}: no constructor without arguments is present", moduleClass.getName());
+                LOG.warn(
+                        "not initializing module {}: no constructor without arguments is present",
+                        moduleClass.getName());
                 continue;
             }
 
             AbstractNoelModule instance = null;
             try {
                 instance = constructor.newInstance();
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                LOG.error("(fatal) received exception when trying to construct module {}", moduleClass.getName(), e);
+            } catch (InstantiationException
+                    | IllegalAccessException
+                    | InvocationTargetException e) {
+                LOG.error(
+                        "(fatal) received exception when trying to construct module {}",
+                        moduleClass.getName(),
+                        e);
                 System.exit(128);
             }
 
@@ -64,14 +72,14 @@ public final class ServiceLocator {
         }
 
         LOG.info("Found {} modules", modules.size());
-        return modules
-                .stream()
-                .sorted((a, b) -> {
-                    final int ap = a.getInfo().priority();
-                    final int bp = b.getInfo().priority();
+        return modules.stream()
+                .sorted(
+                        (a, b) -> {
+                            final int ap = a.getInfo().priority();
+                            final int bp = b.getInfo().priority();
 
-                    return bp - ap;
-                })
+                            return bp - ap;
+                        })
                 .toList();
     }
 }

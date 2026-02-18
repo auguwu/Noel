@@ -17,16 +17,19 @@ package dev.floofy.noel.modules.discord;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+
 import dev.floofy.noel.modules.AbstractNoelModule;
 import dev.floofy.noel.modules.annotations.Initializer;
 import dev.floofy.noel.modules.annotations.Teardown;
 import dev.floofy.noel.modules.settings.Setting;
 import dev.floofy.noel.modules.settings.Settings;
+
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.hooks.InterfacedEventManager;
 import net.dv8tion.jda.api.requests.GatewayIntent;
+
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,8 +41,7 @@ import java.util.concurrent.TimeUnit;
 @dev.floofy.noel.modules.annotations.Module(
         name = "discord",
         description = "Module that initializes JDA and makes it accessible to all modules",
-        priority = 500
-)
+        priority = 500)
 public final class Module extends AbstractNoelModule {
     private static final Logger LOG = LoggerFactory.getLogger(Module.class);
 
@@ -82,7 +84,9 @@ public final class Module extends AbstractNoelModule {
 
         @Override
         public JDA get() {
-            return JDABuilder.createLight(settings.get(token, true), List.of(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS))
+            return JDABuilder.createLight(
+                            settings.get(token, true),
+                            List.of(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS))
                     .setAutoReconnect(true)
                     .setStatus(OnlineStatus.IDLE)
                     .setEnableShutdownHook(false)

@@ -16,6 +16,7 @@
 package dev.floofy.noel;
 
 import dev.floofy.Noel;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,17 +31,17 @@ public final class Bootstrap {
         Thread.currentThread().setName("Noel-Bootstrap");
         Runtime.getRuntime().addShutdownHook(new Thread(Noel::shutdown, "Noel-ShutdownThread"));
 
-        LOG.info("Bootstrapping Noel v{}+{} (built at {})",
+        LOG.info(
+                "Bootstrapping Noel v{}+{} (built at {})",
                 BuildInfo.getVersion(),
                 BuildInfo.getGitCommit(),
                 new SimpleDateFormat("MMMM dd, yyyy @ hh:mm:ss z")
-                        .format(Date.from(Instant.parse(BuildInfo.getBuildTimestamp())))
-        );
+                        .format(Date.from(Instant.parse(BuildInfo.getBuildTimestamp()))));
 
         final Noel noel = new Noel();
         try {
             noel.bootstrap();
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
     }

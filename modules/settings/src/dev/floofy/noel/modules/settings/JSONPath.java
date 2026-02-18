@@ -47,7 +47,7 @@ public final class JSONPath {
         }
 
         Object current = root;
-        for (var token: pointer.split("\\.")) {
+        for (var token : pointer.split("\\.")) {
             current = resolveToken(current, token);
             if (current == null) {
                 return Optional.empty();
@@ -60,7 +60,8 @@ public final class JSONPath {
     private static Object resolveToken(@Nullable Object current, @NotNull String token) {
         if (current instanceof Map<?, ?> map) {
             if (token.contains("[") || token.contains("]")) {
-                throw new IllegalStateException(String.format("Token \"%s\" cannot contain brackets for a Map", token));
+                throw new IllegalStateException(
+                        String.format("Token \"%s\" cannot contain brackets for a Map", token));
             }
 
             return map.get(token);
@@ -84,9 +85,10 @@ public final class JSONPath {
 
             int index;
             try {
-                index = Integer.parseInt(remaining.substring(first+1, last));
+                index = Integer.parseInt(remaining.substring(first + 1, last));
             } catch (NumberFormatException e) {
-                throw new IllegalStateException(String.format("invalid array index in token \"%s\"", token), e);
+                throw new IllegalStateException(
+                        String.format("invalid array index in token \"%s\"", token), e);
             }
 
             List<?> currList = (List<?>) current;

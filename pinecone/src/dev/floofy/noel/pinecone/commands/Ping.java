@@ -16,11 +16,13 @@
 package dev.floofy.noel.pinecone.commands;
 
 import com.google.inject.Inject;
+
 import dev.floofy.noel.modules.settings.Setting;
 import dev.floofy.noel.modules.settings.Settings;
 import dev.floofy.noel.pinecone.AbstractSlashCommand;
 import dev.floofy.noel.pinecone.CommandContext;
 import dev.floofy.noel.pinecone.annotations.SlashCommand;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -30,24 +32,28 @@ import java.util.concurrent.TimeUnit;
 
 @SlashCommand(name = "ping", description = "Pong!")
 public class Ping extends AbstractSlashCommand {
-    private static final Setting<List<String>> LIST_OF_RESPONSES = Setting.of("commands.ping.listOfResponses", (value) -> {
-        if (value == null) {
-            return List.of("^w^");
-        }
+    private static final Setting<List<String>> LIST_OF_RESPONSES =
+            Setting.of(
+                    "commands.ping.listOfResponses",
+                    (value) -> {
+                        if (value == null) {
+                            return List.of("^w^");
+                        }
 
-        if (!(value instanceof List<?>)) {
-            throw new IllegalStateException("[commands.ping.listOfResponses] expected a list of strings");
-        }
+                        if (!(value instanceof List<?>)) {
+                            throw new IllegalStateException(
+                                    "[commands.ping.listOfResponses] expected a list of strings");
+                        }
 
-        for (Object payload: ((List<?>) value)) {
-            if (!(payload instanceof String)) {
-                throw new IllegalArgumentException("list element is not a map");
-            }
-        }
+                        for (Object payload : ((List<?>) value)) {
+                            if (!(payload instanceof String)) {
+                                throw new IllegalArgumentException("list element is not a map");
+                            }
+                        }
 
-        //noinspection unchecked
-        return Collections.unmodifiableList((List<String>)value);
-    });
+                        //noinspection unchecked
+                        return Collections.unmodifiableList((List<String>) value);
+                    });
 
     private final List<String> listOfResponses;
 
@@ -62,9 +68,16 @@ public class Ping extends AbstractSlashCommand {
         int index = ThreadLocalRandom.current().nextInt(listOfResponses.size());
         final String message = listOfResponses.get(index);
 
-        context.reply(message).queue(hook -> {
-            final long end = TimeUnit.MILLISECONDS.convert(System.nanoTime() - start, TimeUnit.NANOSECONDS);
-            hook.editOriginal(String.format(":ping_pong: **%dms** (%s)", end, message)).queue();
-        });
+        context.reply(message)
+                .queue(
+                        hook -> {
+                            final long end =
+                                    TimeUnit.MILLISECONDS.convert(
+                                            System.nanoTime() - start, TimeUnit.NANOSECONDS);
+                            hook.editOriginal(
+                                            String.format(
+                                                    ":ping_pong: **%dms** (%s)", end, message))
+                                    .queue();
+                        });
     }
 }

@@ -16,18 +16,19 @@
 package dev.floofy.noel.pinecone.commands;
 
 import com.google.inject.multibindings.Multibinder;
+
 import dev.floofy.noel.modules.AbstractNoelModule;
 import dev.floofy.noel.pinecone.AbstractSlashCommand;
 
 @dev.floofy.noel.modules.annotations.Module(
         name = "commands:general",
         description = "General commands that the framework provides",
-        priority = 100
-)
+        priority = 100)
 public final class Module extends AbstractNoelModule {
     @Override
     protected void configure() {
-        final Multibinder<AbstractSlashCommand> binder = Multibinder.newSetBinder(binder(), AbstractSlashCommand.class);
+        final Multibinder<AbstractSlashCommand> binder =
+                Multibinder.newSetBinder(binder(), AbstractSlashCommand.class);
 
         binder.addBinding().to(Help.class);
         binder.addBinding().to(Ping.class);

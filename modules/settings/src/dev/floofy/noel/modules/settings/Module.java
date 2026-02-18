@@ -16,15 +16,16 @@
 package dev.floofy.noel.modules.settings;
 
 import com.google.inject.Injector;
+
 import dev.floofy.noel.modules.AbstractNoelModule;
 import dev.floofy.noel.modules.annotations.Initializer;
+
 import org.jetbrains.annotations.NotNull;
 
 @dev.floofy.noel.modules.annotations.Module(
         name = "settings",
         description = "Initializes the `config.yaml` configuration",
-        priority = Integer.MAX_VALUE
-)
+        priority = Integer.MAX_VALUE)
 public final class Module extends AbstractNoelModule {
     @Override
     protected void configure() {

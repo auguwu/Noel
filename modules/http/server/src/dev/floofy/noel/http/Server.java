@@ -16,6 +16,7 @@
 package dev.floofy.noel.http;
 
 import dev.floofy.noel.http.server.Router;
+
 import org.jetbrains.annotations.NotNull;
 
 /// HTTP server that Noel can listen and react to when incoming requests are inflight.

@@ -21,6 +21,12 @@ module(
 
 bazel_dep(name = "rules_jvm_external", version = "6.8")
 bazel_dep(name = "rules_java", version = "8.16.1")
+bazel_dep(name = "aspect_rules_lint", version = "2.1.0")
+
+# Setup linters (Google Java Format)
+formatters = use_extension("@aspect_rules_lint//format:extensions.bzl", "tools")
+formatters.google_java_format()
+use_repo(formatters, "google-java-format")
 
 # Setup Maven repository
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")

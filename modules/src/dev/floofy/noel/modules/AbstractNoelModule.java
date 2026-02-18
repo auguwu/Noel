@@ -16,9 +16,11 @@
 package dev.floofy.noel.modules;
 
 import com.google.inject.AbstractModule;
+
 import dev.floofy.noel.modules.annotations.Initializer;
 import dev.floofy.noel.modules.annotations.Module;
 import dev.floofy.noel.modules.annotations.Teardown;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,9 +39,7 @@ public abstract class AbstractNoelModule extends AbstractModule {
         return mod;
     }
 
-    /**
-     * Returns the teardown {@link Method method}, do not overwrite this.
-     */
+    /** Returns the teardown {@link Method method}, do not overwrite this. */
     @Nullable
     public Method getTeardownMethod() {
         return Arrays.stream(getClass().getMethods())
@@ -48,9 +48,7 @@ public abstract class AbstractNoelModule extends AbstractModule {
                 .orElse(null);
     }
 
-    /**
-     * Returns the initializer {@link Method method}, do not overwrite this.
-     */
+    /** Returns the initializer {@link Method method}, do not overwrite this. */
     @Nullable
     public Method getInitializerMethod() {
         return Arrays.stream(getClass().getMethods())

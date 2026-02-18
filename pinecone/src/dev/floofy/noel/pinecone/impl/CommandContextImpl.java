@@ -17,7 +17,9 @@ package dev.floofy.noel.pinecone.impl;
 
 import dev.floofy.noel.Pinecone;
 import dev.floofy.noel.pinecone.CommandContext;
+
 import net.dv8tion.jda.api.interactions.commands.SlashCommandInteraction;
+
 import org.jetbrains.annotations.NotNull;
 
 public final class CommandContextImpl implements CommandContext {

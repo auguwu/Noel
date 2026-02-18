@@ -20,11 +20,15 @@ import dev.floofy.noel.http.server.impl.NettyServerImpl;
 import dev.floofy.noel.modules.annotations.Initializer;
 import dev.floofy.noel.modules.annotations.Module;
 import dev.floofy.noel.modules.annotations.Teardown;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.ExecutorService;
 
-@Module(name = "http:server", description = "A HTTP server that'll react on a separate thread", priority = 900)
+@Module(
+        name = "http:server",
+        description = "A HTTP server that'll react on a separate thread",
+        priority = 900)
 public final class HttpServerModule extends AbstractNoelModule {
     @Override
     protected void configure() {
@@ -33,13 +37,14 @@ public final class HttpServerModule extends AbstractNoelModule {
 
     @Initializer
     public void init(@NotNull Server server, @NotNull ExecutorService executorService) {
-        executorService.submit(() -> {
-            try {
-                server.start();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
+        executorService.submit(
+                () -> {
+                    try {
+                        server.start();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                });
     }
 
     @Teardown

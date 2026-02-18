@@ -17,6 +17,7 @@ package dev.floofy.noel.modules.settings;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.dataformat.yaml.YAMLFactory;
 
@@ -42,7 +43,9 @@ public final class Settings {
         }
 
         //noinspection unchecked
-        settings = Collections.unmodifiableMap((Map<String, Object>)MAPPER.readValue(path, Map.class));
+        settings =
+                Collections.unmodifiableMap(
+                        (Map<String, Object>) MAPPER.readValue(path, Map.class));
     }
 
     @Nullable
@@ -55,7 +58,8 @@ public final class Settings {
 
         var raw = JSONPath.from(settings, setting.getName());
         if (required && raw.isEmpty()) {
-            throw new RuntimeException(String.format("Configuration setting `%s' is required", setting.getName()));
+            throw new RuntimeException(
+                    String.format("Configuration setting `%s' is required", setting.getName()));
         }
 
         return raw.map(o -> setting.getConverter().apply(o)).orElse(null);

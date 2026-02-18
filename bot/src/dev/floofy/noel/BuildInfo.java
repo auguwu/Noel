@@ -38,13 +38,18 @@ public final class BuildInfo {
 
         try (var stream = BuildInfo.class.getResourceAsStream(BUILD_DATA_PROPERTIES)) {
             if (stream == null) {
-                System.err.println("FATAL: Couldn't find `" + BUILD_DATA_PROPERTIES + "' in classpath, should never happen, using default values instead");
+                System.err.println(
+                        "FATAL: Couldn't find `"
+                                + BUILD_DATA_PROPERTIES
+                                + "' in classpath, should never happen, using default values"
+                                + " instead");
                 return;
             }
 
             properties.load(stream);
-        } catch(IOException ex) {
-            System.err.println("FATAL: tried to read from `" + BUILD_DATA_PROPERTIES + "` but failed");
+        } catch (IOException ex) {
+            System.err.println(
+                    "FATAL: tried to read from `" + BUILD_DATA_PROPERTIES + "` but failed");
             ex.printStackTrace();
             System.exit(128);
         }
@@ -65,9 +70,7 @@ public final class BuildInfo {
         return val.substring(1, val.length() - 1); // removes any quotes (`"`)
     }
 
-    /**
-     * Returns the current version of this build.
-     */
+    /** Returns the current version of this build. */
     @NotNull
     public static String getVersion() {
         return getProperty(VERSION_KEY);

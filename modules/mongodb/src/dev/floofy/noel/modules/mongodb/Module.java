@@ -22,18 +22,17 @@ import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
+
 import dev.floofy.noel.modules.AbstractNoelModule;
 import dev.floofy.noel.modules.settings.Setting;
 import dev.floofy.noel.modules.settings.Settings;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
 @dev.floofy.noel.modules.annotations.Module(
         name = "mongodb",
         description = "Provides a module for initializing a MongoDB database",
-        priority = 900
-)
+        priority = 900)
 public final class Module extends AbstractNoelModule {
     @Override
     protected void configure() {
@@ -52,10 +51,12 @@ public final class Module extends AbstractNoelModule {
 
         @Override
         public MongoClient get() {
-            return MongoClients.create(MongoClientSettings.builder()
-                    .applyConnectionString(new ConnectionString(settings.get(CONNECTION_URI, true)))
-                    .applicationName("Noel")
-                    .build());
+            return MongoClients.create(
+                    MongoClientSettings.builder()
+                            .applyConnectionString(
+                                    new ConnectionString(settings.get(CONNECTION_URI, true)))
+                            .applicationName("Noel")
+                            .build());
         }
     }
 

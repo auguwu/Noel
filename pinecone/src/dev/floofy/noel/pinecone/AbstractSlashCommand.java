@@ -16,10 +16,12 @@
 package dev.floofy.noel.pinecone;
 
 import com.google.inject.Injector;
+
 import dev.floofy.Noel;
 import dev.floofy.noel.pinecone.annotations.SlashCommand;
 import dev.floofy.noel.pinecone.internals.Utilities;
 import dev.floofy.noel.pinecone.internals.options.FieldTarget;
+
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,20 +65,29 @@ public abstract class AbstractSlashCommand {
             LOG.trace("Processing subcommand groups for class");
 
             final Injector injector = Noel.getInstance().getInjector();
-            for (Class<?> nestedClass: getClass().getDeclaredClasses()) {
-                final var annot = nestedClass.getAnnotation(dev.floofy.noel.pinecone.annotations.SubcommandGroup.class);
+            for (Class<?> nestedClass : getClass().getDeclaredClasses()) {
+                final var annot =
+                        nestedClass.getAnnotation(
+                                dev.floofy.noel.pinecone.annotations.SubcommandGroup.class);
                 if (annot == null) {
                     continue;
                 }
 
-                LOG.trace("Found @SubcommandGroup with name `{}' in class `{}'", annot.name(), nestedClass);
+                LOG.trace(
+                        "Found @SubcommandGroup with name `{}' in class `{}'",
+                        annot.name(),
+                        nestedClass);
                 if (!Modifier.isStatic(nestedClass.getModifiers())) {
                     LOG.warn("Class `{}' was not marked `static`, skipping", nestedClass);
                     continue;
                 }
 
                 Object instance = injector.getInstance(nestedClass);
-                final var subcommands = Utilities.collectSubcommands(nestedClass, (info, method, options) -> new Subcommand(info, options, method, instance));
+                final var subcommands =
+                        Utilities.collectSubcommands(
+                                nestedClass,
+                                (info, method, options) ->
+                                        new Subcommand(info, options, method, instance));
                 subcommandGroups.add(new SubcommandGroup(annot, nestedClass, subcommands));
             }
         }
@@ -87,7 +98,10 @@ public abstract class AbstractSlashCommand {
     @NotNull
     public Map<String, Subcommand> getSubcommands() {
         if (subcommands == null) {
-            subcommands = Utilities.collectSubcommands(getClass(), (info, method, options) -> new Subcommand(info, options, method, this));
+            subcommands =
+                    Utilities.collectSubcommands(
+                            getClass(),
+                            (info, method, options) -> new Subcommand(info, options, method, this));
         }
 
         return Collections.unmodifiableMap(subcommands);
@@ -103,8 +117,9 @@ public abstract class AbstractSlashCommand {
             options = new ArrayList<>();
 
             LOG.trace("Processing options for class");
-            for (Field field: getClass().getDeclaredFields()) {
-                final var annot = field.getAnnotation(dev.floofy.noel.pinecone.annotations.Option.class);
+            for (Field field : getClass().getDeclaredFields()) {
+                final var annot =
+                        field.getAnnotation(dev.floofy.noel.pinecone.annotations.Option.class);
                 if (annot == null) {
                     continue;
                 }
@@ -124,21 +139,19 @@ public abstract class AbstractSlashCommand {
                         } else if (innerType instanceof ParameterizedType innerPt) {
                             resolvedType = (Class<?>) innerPt.getRawType();
                         } else {
-                            throw new IllegalStateException("Unsupported generic type: " + innerType);
+                            throw new IllegalStateException(
+                                    "Unsupported generic type: " + innerType);
                         }
                     } else {
-                        throw new IllegalStateException("Optional field missing generic type: " + field);
+                        throw new IllegalStateException(
+                                "Optional field missing generic type: " + field);
                     }
                 } else {
                     resolvedType = rawType;
                 }
 
-                options.add(new Option(
-                        annot,
-                        resolvedType,
-                        new FieldTarget(field),
-                        isOptionalType
-                ));
+                options.add(
+                        new Option(annot, resolvedType, new FieldTarget(field), isOptionalType));
             }
         }
 

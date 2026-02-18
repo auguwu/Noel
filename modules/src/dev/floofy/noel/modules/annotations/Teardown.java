@@ -20,10 +20,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * When a module is set to be teardown, a method marked with this annotation
- * will be called.
- */
+/** When a module is set to be teardown, a method marked with this annotation will be called. */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Teardown {}

@@ -16,18 +16,22 @@
 package dev.floofy.noel.pinecone;
 
 import com.google.inject.Injector;
+
 import dev.floofy.noel.Pinecone;
 import dev.floofy.noel.modules.AbstractNoelModule;
 import dev.floofy.noel.modules.annotations.Initializer;
 import dev.floofy.noel.pinecone.impl.PineconeImpl;
+
 import net.dv8tion.jda.api.JDA;
+
 import org.jetbrains.annotations.NotNull;
 
 @dev.floofy.noel.modules.annotations.Module(
         name = "pinecone",
-        description = "Module that registers Pinecone, the slash command framework that powers everything",
-        priority = 250
-)
+        description =
+                "Module that registers Pinecone, the slash command framework that powers"
+                    + " everything",
+        priority = 250)
 public class Module extends AbstractNoelModule {
     @Override
     protected void configure() {

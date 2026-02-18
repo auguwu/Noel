@@ -17,8 +17,10 @@ package dev.floofy.noel.modules.discord;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+
 import dev.floofy.noel.modules.settings.Setting;
 import dev.floofy.noel.modules.settings.Settings;
+
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
@@ -26,6 +28,7 @@ import net.dv8tion.jda.api.entities.SelfUser;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.events.session.ShutdownEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +40,6 @@ import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class EventListener extends ListenerAdapter {
@@ -62,7 +64,8 @@ public final class EventListener extends ListenerAdapter {
 
         @Override
         public String toString() {
-            return String.format("PresenceMeta(message=\"%s\", type=\"%s\")", getMessage(), getType().getKey());
+            return String.format(
+                    "PresenceMeta(message=\"%s\", type=\"%s\")", getMessage(), getType().getKey());
         }
     }
 
@@ -71,55 +74,68 @@ public final class EventListener extends ListenerAdapter {
     ///     presenceMessages:
     ///       - message: "you"
     ///         status: watching
-    private final Setting<List<PresenceMeta>> listOfPresences = Setting.of("modules.discord.presenceMessages", (value) -> {
-        if (value == null) {
-            return List.of();
-        }
+    private final Setting<List<PresenceMeta>> listOfPresences =
+            Setting.of(
+                    "modules.discord.presenceMessages",
+                    (value) -> {
+                        if (value == null) {
+                            return List.of();
+                        }
 
-        if (!(value instanceof List<?>)) {
-            throw new IllegalStateException("[modules.discord.presenceMessages] expected a list of objects of {message: string, status: string}");
-        }
+                        if (!(value instanceof List<?>)) {
+                            throw new IllegalStateException(
+                                    "[modules.discord.presenceMessages] expected a list of objects"
+                                        + " of {message: string, status: string}");
+                        }
 
-        final ArrayList<PresenceMeta> meta = new ArrayList<>();
-        for (Object payload: ((List<?>) value)) {
-            if (payload instanceof String) {
-                meta.add(new PresenceMeta((String)payload, Activity.ActivityType.PLAYING));
-                continue;
-            }
+                        final ArrayList<PresenceMeta> meta = new ArrayList<>();
+                        for (Object payload : ((List<?>) value)) {
+                            if (payload instanceof String) {
+                                meta.add(
+                                        new PresenceMeta(
+                                                (String) payload, Activity.ActivityType.PLAYING));
+                                continue;
+                            }
 
-            if (!(payload instanceof Map<?, ?> map)) {
-                throw new IllegalArgumentException("list element is not a map");
-            }
+                            if (!(payload instanceof Map<?, ?> map)) {
+                                throw new IllegalArgumentException("list element is not a map");
+                            }
 
-            final Object message = map.get("message");
-            if (message == null) {
-                throw new IllegalArgumentException("missing `message' parameter");
-            }
+                            final Object message = map.get("message");
+                            if (message == null) {
+                                throw new IllegalArgumentException("missing `message' parameter");
+                            }
 
-            if (!(message instanceof String)) {
-                throw new IllegalArgumentException("expected `message' parameter to be a string");
-            }
+                            if (!(message instanceof String)) {
+                                throw new IllegalArgumentException(
+                                        "expected `message' parameter to be a string");
+                            }
 
-            final Object type = map.get("type");
-            if (type != null && !(type instanceof String)) {
-                throw new IllegalArgumentException("expected `type' parameter to be a string");
-            }
+                            final Object type = map.get("type");
+                            if (type != null && !(type instanceof String)) {
+                                throw new IllegalArgumentException(
+                                        "expected `type' parameter to be a string");
+                            }
 
-            Activity.ActivityType activityType = type == null
-                    ? Activity.ActivityType.PLAYING
-                    : switch (((String)type).toLowerCase(Locale.ROOT)) {
-                        case "playing" -> Activity.ActivityType.PLAYING;
-                        case "listening" -> Activity.ActivityType.LISTENING;
-                        case "watching" -> Activity.ActivityType.WATCHING;
-                        case "competing" -> Activity.ActivityType.COMPETING;
-                        default -> throw new IllegalArgumentException(String.format("invalid kind \"%s\"", (String)type));
-                    };
+                            Activity.ActivityType activityType =
+                                    type == null
+                                            ? Activity.ActivityType.PLAYING
+                                            : switch (((String) type).toLowerCase(Locale.ROOT)) {
+                                                case "playing" -> Activity.ActivityType.PLAYING;
+                                                case "listening" -> Activity.ActivityType.LISTENING;
+                                                case "watching" -> Activity.ActivityType.WATCHING;
+                                                case "competing" -> Activity.ActivityType.COMPETING;
+                                                default -> throw new IllegalArgumentException(
+                                                        String.format(
+                                                                "invalid kind \"%s\"",
+                                                                (String) type));
+                                            };
 
-            meta.add(new PresenceMeta((String)message, activityType));
-        }
+                            meta.add(new PresenceMeta((String) message, activityType));
+                        }
 
-        return meta;
-    });
+                        return meta;
+                    });
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -140,32 +156,32 @@ public final class EventListener extends ListenerAdapter {
     @Override
     public void onShutdown(@NotNull ShutdownEvent event) {
         log.warn("received shutdown event (closeCode={})", event.getCloseCode());
-//        if (rotatePresenceTask != null && !rotatePresenceTask.isCancelled()) {
-//            rotatePresenceTask.cancel(false);
-//        }
+        //        if (rotatePresenceTask != null && !rotatePresenceTask.isCancelled()) {
+        //            rotatePresenceTask.cancel(false);
+        //        }
     }
 
     @Override
     public void onReady(@NotNull ReadyEvent event) {
         final SelfUser self = event.getJDA().getSelfUser();
-        log.info("Bot has connected as {}#{} ({})",
+        log.info(
+                "Bot has connected as {}#{} ({})",
                 self.getName(),
                 self.getDiscriminator(),
                 self.getId());
 
-        rotatePresence();
-
-//        // Cancel existing task if reconnect
-//        if (rotatePresenceTask != null && !rotatePresenceTask.isCancelled()) {
-//            rotatePresenceTask.cancel(false);
-//        }
-//
-//        rotatePresenceTask = scheduler.scheduleWithFixedDelay(
-//                this::rotatePresence,
-//                0,
-//                5,
-//                TimeUnit.MINUTES
-//        );
+        // rotatePresence();
+        //        // Cancel existing task if reconnect
+        //        if (rotatePresenceTask != null && !rotatePresenceTask.isCancelled()) {
+        //            rotatePresenceTask.cancel(false);
+        //        }
+        //
+        //        rotatePresenceTask = scheduler.scheduleWithFixedDelay(
+        //                this::rotatePresence,
+        //                0,
+        //                5,
+        //                TimeUnit.MINUTES
+        //        );
     }
 
     void rotatePresence() {
@@ -173,7 +189,8 @@ public final class EventListener extends ListenerAdapter {
         final JDA jda = this.jda.get();
 
         if (presences.isEmpty()) {
-            jda.getPresence().setPresence(OnlineStatus.ONLINE, Activity.competing("for your love! <3"));
+            jda.getPresence()
+                    .setPresence(OnlineStatus.ONLINE, Activity.competing("for your love! <3"));
             return;
         }
 
@@ -181,6 +198,7 @@ public final class EventListener extends ListenerAdapter {
         final PresenceMeta meta = presences.get(index);
 
         log.info("rotated presence: {} ({})", meta.getMessage(), meta.getType());
-        jda.getPresence().setPresence(OnlineStatus.ONLINE, Activity.of(meta.getType(), meta.getMessage()));
+        jda.getPresence()
+                .setPresence(OnlineStatus.ONLINE, Activity.of(meta.getType(), meta.getMessage()));
     }
 }

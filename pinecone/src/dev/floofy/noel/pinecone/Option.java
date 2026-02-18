@@ -19,17 +19,16 @@ import dev.floofy.noel.pinecone.internals.options.FieldTarget;
 import dev.floofy.noel.pinecone.internals.options.ParameterTarget;
 import dev.floofy.noel.pinecone.internals.options.Resolver;
 import dev.floofy.noel.pinecone.internals.options.Target;
+
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Parameter;
-import java.lang.reflect.ParameterizedType;
 import java.util.Optional;
 
 public final class Option {
@@ -45,8 +44,7 @@ public final class Option {
             @NotNull dev.floofy.noel.pinecone.annotations.Option info,
             @NotNull Class<?> resolvedClass,
             @NotNull Target target,
-            boolean isOptionalType
-    ) {
+            boolean isOptionalType) {
         this.info = info;
         this.resolvedClass = resolvedClass;
         this.isOptionalType = isOptionalType;
@@ -77,7 +75,8 @@ public final class Option {
             return OptionMapping::getAsRole;
         }
 
-        throw new IllegalStateException(String.format("unable to map mapping to class `%s'", type.getName()));
+        throw new IllegalStateException(
+                String.format("unable to map mapping to class `%s'", type.getName()));
     }
 
     @NotNull
@@ -85,7 +84,9 @@ public final class Option {
         return info;
     }
 
-    public void resolveInto(@NotNull CommandContext context, @Nullable Object instance, @Nullable Object[] args) throws Exception {
+    public void resolveInto(
+            @NotNull CommandContext context, @Nullable Object instance, @Nullable Object[] args)
+            throws Exception {
         final OptionMapping mapping = context.getInteraction().getOption(info.name());
         Object value = null;
 

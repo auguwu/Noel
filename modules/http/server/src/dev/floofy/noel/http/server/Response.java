@@ -22,13 +22,17 @@ import java.io.IOException;
 /// A HTTP response.
 public interface Response {
     /// Sets the response status code.
-    /// @throws ResponseAlreadyOutgoingException if this response is already sealed and being transmitted
+    /// @throws ResponseAlreadyOutgoingException if this response is already sealed and being
+    // transmitted
     Response setStatus(HttpResponseStatus status) throws ResponseAlreadyOutgoingException;
 
-    /// @throws ResponseAlreadyOutgoingException if this response is already sealed and being transmitted
+    /// @throws ResponseAlreadyOutgoingException if this response is already sealed and being
+    // transmitted
     Response setHeader(String name, Object value) throws ResponseAlreadyOutgoingException;
 
-    /// @throws ResponseAlreadyOutgoingException if this response is already sealed and being transmitted
+    /// @throws ResponseAlreadyOutgoingException if this response is already sealed and being
+    // transmitted
     void sendText(String text) throws ResponseAlreadyOutgoingException;
+
     void sendJSON(Object obj) throws IOException;
 }

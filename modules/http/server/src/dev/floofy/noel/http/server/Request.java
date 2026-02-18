@@ -18,7 +18,6 @@ package dev.floofy.noel.http.server;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
 /// A HTTP request.

@@ -22,4 +22,7 @@ if ! command -v bazel >/dev/null; then
       echo "[noel/tooling:repin-maven-install] Missing \`bazel\` command"
 fi
 
-REPIN=1 bazel run @maven//:pin
+workdir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")"/.. &> /dev/null && pwd)
+files=$(find "$workdir" -name "*.java" -type f -print)
+
+exec find "$workdir" -name "*.java" -type f -print | xargs bazel run //tools:google-javaformat -- --replace

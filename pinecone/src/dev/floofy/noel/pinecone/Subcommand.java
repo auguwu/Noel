@@ -32,8 +32,7 @@ public final class Subcommand {
             @NotNull dev.floofy.noel.pinecone.annotations.Subcommand info,
             @NotNull List<Option> options,
             @NotNull Method handle,
-            @NotNull Object instance
-    ) {
+            @NotNull Object instance) {
         this.methodHandle = handle;
         this.instance = instance;
         this.options = options;
@@ -52,11 +51,13 @@ public final class Subcommand {
         final Object[] args = new Object[methodHandle.getParameterCount()];
         args[0] = context;
 
-        for (Option option: getOptions()) {
+        for (Option option : getOptions()) {
             try {
                 option.resolveInto(context, null, args);
             } catch (Exception e) {
-                context.reply(":pensive: **^=~=^** failed to run subcommand, try again later").setEphemeral(true).queue();
+                context.reply(":pensive: **^=~=^** failed to run subcommand, try again later")
+                        .setEphemeral(true)
+                        .queue();
                 return;
             }
         }

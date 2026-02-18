@@ -13,14 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 {
-  temurin-bin,
+  temurin-bin-21,
   bazel_8,
   clang_21,
   mkShell,
 }:
 mkShell {
   packages = [
-    temurin-bin
+    temurin-bin-21
     bazel_8
     clang_21
   ];

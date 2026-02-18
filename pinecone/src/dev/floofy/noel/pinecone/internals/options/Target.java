@@ -17,5 +17,6 @@ package dev.floofy.noel.pinecone.internals.options;
 
 public sealed interface Target permits FieldTarget, ParameterTarget {
     void inject(Object instance, Object value) throws Exception;
+
     void inject(Object[] arguments, Object value) throws Exception;
 }
