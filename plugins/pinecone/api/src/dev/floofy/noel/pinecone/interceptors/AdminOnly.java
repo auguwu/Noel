@@ -21,10 +21,9 @@ import dev.floofy.noel.Settings;
 import dev.floofy.noel.pinecone.CommandContext;
 import dev.floofy.noel.pinecone.CommandInfo;
 import dev.floofy.noel.pinecone.CommandInterceptor;
+import java.util.List;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
-
-import java.util.List;
 
 public final class AdminOnly implements CommandInterceptor {
     private static final Setting<List<Long>> OWNERS = Setting.list("discord.admins", AdminOnly::userId);
@@ -42,7 +41,9 @@ public final class AdminOnly implements CommandInterceptor {
             return true;
         }
 
-        cx.reply(":no_entry: **|> only the admins can use this command!**").setEphemeral(true).queue();
+        cx.reply(":no_entry: **|> only the admins can use this command!**")
+                .setEphemeral(true)
+                .queue();
         return false;
     }
 

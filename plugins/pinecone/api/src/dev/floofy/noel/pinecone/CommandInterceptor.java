@@ -15,10 +15,9 @@
 
 package dev.floofy.noel.pinecone;
 
+import java.time.Duration;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
-
-import java.time.Duration;
 
 /// Runs around every slash command invocation, for checks, cooldowns, metrics or audit logging.
 ///

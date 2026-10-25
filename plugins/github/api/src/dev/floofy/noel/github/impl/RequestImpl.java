@@ -17,15 +17,14 @@ package dev.floofy.noel.github.impl;
 
 import dev.floofy.noel.github.api.Method;
 import dev.floofy.noel.github.api.Request;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import tools.jackson.core.type.TypeReference;
-
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
 
 public final class RequestImpl<T> implements Request<T> {
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
@@ -38,11 +37,7 @@ public final class RequestImpl<T> implements Request<T> {
     private final Method method;
     private Object body;
 
-    RequestImpl(
-            ClientImpl client,
-            Method method,
-            HttpUrl.Builder url,
-            Function<byte[], T> decoder) {
+    RequestImpl(ClientImpl client, Method method, HttpUrl.Builder url, Function<byte[], T> decoder) {
         this(client, method, url, decoder, new Headers.Builder(), null);
     }
 
@@ -102,7 +97,13 @@ public final class RequestImpl<T> implements Request<T> {
     }
 
     private <R> RequestImpl<R> copyWith(Function<byte[], R> decoder) {
-        return new RequestImpl<>(this.client, this.method, this.url.build().newBuilder(), decoder, new Headers.Builder().addAll(headers.build()), this.body);
+        return new RequestImpl<>(
+                this.client,
+                this.method,
+                this.url.build().newBuilder(),
+                decoder,
+                new Headers.Builder().addAll(headers.build()),
+                this.body);
     }
 
     @Override

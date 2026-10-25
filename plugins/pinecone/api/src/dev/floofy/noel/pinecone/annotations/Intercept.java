@@ -16,7 +16,6 @@
 package dev.floofy.noel.pinecone.annotations;
 
 import dev.floofy.noel.pinecone.CommandInterceptor;
-
 import java.lang.annotation.*;
 
 /// Runs [CommandInterceptor]s around one command only, instead of every command.

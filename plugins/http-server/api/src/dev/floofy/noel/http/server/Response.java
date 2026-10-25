@@ -16,7 +16,6 @@
 package dev.floofy.noel.http.server;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
-
 import java.io.IOException;
 
 /// An HTTP response.

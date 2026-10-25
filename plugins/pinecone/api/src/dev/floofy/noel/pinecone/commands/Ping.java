@@ -21,7 +21,6 @@ import dev.floofy.noel.Settings;
 import dev.floofy.noel.pinecone.AbstractSlashCommand;
 import dev.floofy.noel.pinecone.CommandContext;
 import dev.floofy.noel.pinecone.annotations.SlashCommand;
-
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -43,7 +42,8 @@ public final class Ping extends AbstractSlashCommand {
 
         cx.reply(message).queue(hook -> {
             final var end = TimeUnit.MILLISECONDS.convert(System.nanoTime() - start, TimeUnit.NANOSECONDS);
-            hook.editOriginalFormat(":ping_pong: **|> %s** (*%d*ms)", message, end).queue();
+            hook.editOriginalFormat(":ping_pong: **|> %s** (*%d*ms)", message, end)
+                    .queue();
         });
     }
 }

@@ -21,10 +21,9 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
-import tools.jackson.databind.ObjectMapper;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import tools.jackson.databind.ObjectMapper;
 
 public class ResponseImpl implements Response {
     private final HttpHeaders headers = new DefaultHttpHeaders();
@@ -69,11 +68,8 @@ public class ResponseImpl implements Response {
     public void sendText(String text) throws ResponseAlreadyTransmittingException {
         checkIfSent();
 
-        final FullHttpResponse response =
-                new DefaultFullHttpResponse(
-                        HttpVersion.HTTP_1_1,
-                        status,
-                        Unpooled.copiedBuffer(text, StandardCharsets.UTF_8));
+        final FullHttpResponse response = new DefaultFullHttpResponse(
+                HttpVersion.HTTP_1_1, status, Unpooled.copiedBuffer(text, StandardCharsets.UTF_8));
 
         response.headers()
                 .set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=utf-8")
@@ -88,11 +84,8 @@ public class ResponseImpl implements Response {
         checkIfSent();
 
         final String json = objectMapper.writeValueAsString(obj);
-        final FullHttpResponse response =
-                new DefaultFullHttpResponse(
-                        HttpVersion.HTTP_1_1,
-                        status,
-                        Unpooled.copiedBuffer(json, StandardCharsets.UTF_8));
+        final FullHttpResponse response = new DefaultFullHttpResponse(
+                HttpVersion.HTTP_1_1, status, Unpooled.copiedBuffer(json, StandardCharsets.UTF_8));
 
         response.headers()
                 .set(HttpHeaderNames.CONTENT_TYPE, "application/json; charset=utf-8")

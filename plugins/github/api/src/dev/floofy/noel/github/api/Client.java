@@ -15,9 +15,8 @@
 
 package dev.floofy.noel.github.api;
 
-import tools.jackson.databind.JsonNode;
-
 import java.util.Map;
+import tools.jackson.databind.JsonNode;
 
 /// A client for GitHub's REST API, in the style of JDA.
 ///

@@ -47,5 +47,4 @@ public interface Server {
     ///
     /// @throws Exception if closing the listening socket fails
     void shutdown() throws Exception;
-
 }

@@ -22,7 +22,6 @@ import dev.floofy.noel.pinecone.AbstractSlashCommand;
 import dev.floofy.noel.pinecone.CommandInterceptor;
 import dev.floofy.noel.pinecone.CommandRegistry;
 import dev.floofy.noel.pinecone.annotations.Intercept;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 

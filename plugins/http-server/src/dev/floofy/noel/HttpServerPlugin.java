@@ -78,8 +78,7 @@ import dev.floofy.noel.plugins.Plugin;
 /// [Server], whose [Server#getRouter()] is where routes go.
 @Descriptor(
         id = "dev.floofy.noel.plugins.HttpServerPlugin",
-        description = "A HTTP server that other plugins can add routes to"
-)
+        description = "A HTTP server that other plugins can add routes to")
 public final class HttpServerPlugin extends Plugin {
     private Server server;
 

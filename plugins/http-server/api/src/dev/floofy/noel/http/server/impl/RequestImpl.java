@@ -17,14 +17,11 @@ package dev.floofy.noel.http.server.impl;
 
 import dev.floofy.noel.http.server.HttpMethod;
 import dev.floofy.noel.http.server.Request;
-
 import io.netty.handler.codec.http.FullHttpRequest;
-
-import tools.jackson.databind.ObjectMapper;
-
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.charset.StandardCharsets;
+import tools.jackson.databind.ObjectMapper;
 
 public class RequestImpl implements Request {
     private final SocketAddress remoteAddress;
@@ -32,7 +29,8 @@ public class RequestImpl implements Request {
     private final FullHttpRequest netty;
     private final HttpMethod method;
 
-    protected RequestImpl(FullHttpRequest request, HttpMethod method, SocketAddress remoteAddress, ObjectMapper mapper) {
+    protected RequestImpl(
+            FullHttpRequest request, HttpMethod method, SocketAddress remoteAddress, ObjectMapper mapper) {
         this.remoteAddress = remoteAddress;
         this.objectMapper = mapper;
         this.method = method;

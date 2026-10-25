@@ -309,21 +309,24 @@ public final class PluginManager implements Closeable {
         // noel shut the fuck up and stop being overwatch pilled
         var doomed = new HashSet<Class<? extends Plugin>>();
         var victims = new ArrayList<LoadedPlugin>();
-        for (var lp: enabledPlugins) {
+        for (var lp : enabledPlugins) {
             if (lp == root || Arrays.stream(lp.descriptor().dependsOn()).anyMatch(doomed::contains)) {
                 doomed.add(lp.type());
                 victims.add(lp);
             }
         }
 
-        for (var lp: victims) {
+        for (var lp : victims) {
             if (keep.contains(lp.descriptor().id())) {
-                throw new PluginException(id, "disabling it would also disable [%s]".formatted(lp.descriptor().id()));
+                throw new PluginException(
+                        id,
+                        "disabling it would also disable [%s]"
+                                .formatted(lp.descriptor().id()));
             }
         }
 
         Collections.reverse(victims); // dependents first
-        for (var lp: victims) {
+        for (var lp : victims) {
             notifyDestructing(lp, lp.hooks());
             destructPlugin(lp);
             enabledPlugins.remove(lp);
@@ -345,7 +348,8 @@ public final class PluginManager implements Closeable {
     ///
     /// @param id the plugin to enable
     /// @return the plugins that were enabled, in enable order
-    /// @throws PluginException if no plugin has that id, it's already enabled, or it or one of its dependencies fails to enable
+    /// @throws PluginException if no plugin has that id, it's already enabled, or it or one of its dependencies fails
+    /// to enable
     public synchronized List<Descriptor> enable(String id) {
         requireState(State.Enabled, "enable");
 

@@ -22,14 +22,6 @@ import dev.floofy.noel.github.api.Client;
 import dev.floofy.noel.github.api.GitHubException;
 import dev.floofy.noel.github.api.Method;
 import dev.floofy.noel.github.api.Request;
-import okhttp3.*;
-import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import tools.jackson.databind.*;
-import tools.jackson.databind.json.JsonMapper;
-import tools.jackson.databind.node.MissingNode;
-
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
@@ -38,13 +30,21 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
+import okhttp3.*;
+import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import tools.jackson.databind.*;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.MissingNode;
 
 public final class ClientImpl implements Client {
     private static final HttpUrl DEFAULT_BASE_URL = HttpUrl.get("https://api.github.com/");
-    private static final Setting<HttpUrl> BASE_URL = Setting.of("plugins.github.base_url", Object.class).transform(raw -> switch (raw) {
-        case String url -> HttpUrl.parse(url);
-        default -> throw new IllegalArgumentException("expected string");
-    });
+    private static final Setting<HttpUrl> BASE_URL = Setting.of("plugins.github.base_url", Object.class)
+            .transform(raw -> switch (raw) {
+                case String url -> HttpUrl.parse(url);
+                default -> throw new IllegalArgumentException("expected string");
+            });
 
     private static final Setting<String> TOKEN = Setting.string("plugins.github.token");
     private static final String USER_AGENT = "Noelbot (+https://github.com/auguwu/Noel)";
@@ -58,6 +58,7 @@ public final class ClientImpl implements Client {
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private final Optional<String> token;
+
     private final OkHttpClient client;
     private final HttpUrl baseUrl;
 
@@ -101,7 +102,9 @@ public final class ClientImpl implements Client {
         }
 
         if (this.token.isPresent()) {
-            builder.header("Authorization", String.format("Bearer %s", this.token.map(String::strip).get()));
+            builder.header(
+                    "Authorization",
+                    String.format("Bearer %s", this.token.map(String::strip).get()));
         }
 
         final var call = this.client.newCall(builder.build());
@@ -142,7 +145,8 @@ public final class ClientImpl implements Client {
     private static void logRatelimit(Response response) {
         final var remaining = response.header("x-ratelimit-remaining");
         if (remaining != null && LOG.isTraceEnabled()) {
-            LOG.trace("{} {}: {}/{} requests left in this window",
+            LOG.trace(
+                    "{} {}: {}/{} requests left in this window",
                     response.request().method(),
                     response.request().url().encodedPath(),
                     remaining,

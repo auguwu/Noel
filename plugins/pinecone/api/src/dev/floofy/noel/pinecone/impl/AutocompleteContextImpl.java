@@ -17,9 +17,8 @@ package dev.floofy.noel.pinecone.impl;
 
 import dev.floofy.noel.Pinecone;
 import dev.floofy.noel.pinecone.AutocompleteContext;
-import net.dv8tion.jda.api.interactions.commands.CommandAutoCompleteInteraction;
-
 import java.util.Objects;
+import net.dv8tion.jda.api.interactions.commands.CommandAutoCompleteInteraction;
 
 public final class AutocompleteContextImpl implements AutocompleteContext {
     private final CommandAutoCompleteInteraction interaction;
@@ -29,7 +28,6 @@ public final class AutocompleteContextImpl implements AutocompleteContext {
         this.interaction = Objects.requireNonNull(interaction, "interaction");
         this.pinecone = Objects.requireNonNull(pinecone, "pinecone");
     }
-
 
     @Override
     public CommandAutoCompleteInteraction getInteraction() {

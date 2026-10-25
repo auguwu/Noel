@@ -20,6 +20,7 @@ import dev.floofy.noel.pinecone.*;
 import dev.floofy.noel.pinecone.annotations.Autocomplete;
 import dev.floofy.noel.pinecone.annotations.Option;
 import dev.floofy.noel.pinecone.annotations.SlashCommand;
+import java.util.*;
 import net.dv8tion.jda.api.components.container.Container;
 import net.dv8tion.jda.api.components.container.ContainerChildComponent;
 import net.dv8tion.jda.api.components.section.Section;
@@ -29,8 +30,6 @@ import net.dv8tion.jda.api.components.thumbnail.Thumbnail;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
-
-import java.util.*;
 
 @SlashCommand(name = "help", description = "View a list of available slash commands or help for a specific command")
 public final class Help extends AbstractSlashCommand {
@@ -55,9 +54,7 @@ public final class Help extends AbstractSlashCommand {
 
         final var guild = cx.getGuild();
         final var name = command.get().strip().replaceFirst("^/", "").toLowerCase(Locale.ROOT);
-        final var cmd = cx.getPinecone()
-                .getSlashCommands()
-                .stream()
+        final var cmd = cx.getPinecone().getSlashCommands().stream()
                 .filter(c -> c.name().equals(name))
                 .filter(c -> guild == null ? c.isGlobal() : c.isAvailableIn(guild.getIdLong()))
                 .findFirst();
@@ -103,20 +100,19 @@ public final class Help extends AbstractSlashCommand {
         final var self = cx.getSelfUser();
         final var guild = cx.getGuild();
         if (guild == null) {
-            cx.reply(":question: **|> this command requires to be called in a guild.**").queue();
+            cx.reply(":question: **|> this command requires to be called in a guild.**")
+                    .queue();
             return null;
         }
 
         final var pinecone = cx.getPinecone();
         final var commands = pinecone.getSlashCommands();
-        final var globalCommands = commands
-                .stream()
+        final var globalCommands = commands.stream()
                 .filter(cmd -> cmd.guilds().isEmpty() && pinecone.canUse(cmd, cx.getUser(), cx.getMember()))
                 .map(cmd -> String.format("**`/%s`**", cmd.name()))
                 .toList();
 
-        final var thisGuildCommands = commands
-                .stream()
+        final var thisGuildCommands = commands.stream()
                 .filter(cmd -> pinecone.canUse(cmd, cx.getUser(), cx.getMember()))
                 .filter(cmd -> !cmd.guilds().isEmpty() && cmd.guilds().contains(guild.getIdLong()))
                 .map(cmd -> String.format("**`/%s`**", cmd.name()))
@@ -125,17 +121,19 @@ public final class Help extends AbstractSlashCommand {
         return new MessageCreateBuilder()
                 .useComponentsV2()
                 .addComponents(Container.of(
-                        Section.of(
-                                Thumbnail.fromUrl(self.getEffectiveAvatarUrl()),
-                                TextDisplay.of("## Commands"),
-                                TextDisplay.of(String.join(", ", globalCommands))
-                        ),
-                        Separator.createDivider(Separator.Spacing.LARGE),
-                        TextDisplay.of("## Guild Specific"),
-                        TextDisplay.of(thisGuildCommands.isEmpty() ? "*no guild-specific commands available*" : String.join(", ", thisGuildCommands)),
-                        Separator.createDivider(Separator.Spacing.SMALL),
-                        TextDisplay.of("*Tip*: Run `/help [command]` to get more information about a command")
-                ).withAccentColor(Noel.EMBED_COLOUR))
+                                Section.of(
+                                        Thumbnail.fromUrl(self.getEffectiveAvatarUrl()),
+                                        TextDisplay.of("## Commands"),
+                                        TextDisplay.of(String.join(", ", globalCommands))),
+                                Separator.createDivider(Separator.Spacing.LARGE),
+                                TextDisplay.of("## Guild Specific"),
+                                TextDisplay.of(
+                                        thisGuildCommands.isEmpty()
+                                                ? "*no guild-specific commands available*"
+                                                : String.join(", ", thisGuildCommands)),
+                                Separator.createDivider(Separator.Spacing.SMALL),
+                                TextDisplay.of("*Tip*: Run `/help [command]` to get more information about a command"))
+                        .withAccentColor(Noel.EMBED_COLOUR))
                 .build();
     }
 
@@ -149,7 +147,8 @@ public final class Help extends AbstractSlashCommand {
                 .filter(cmd -> guild == null ? cmd.isGlobal() : cmd.isAvailableIn(guild.getIdLong()))
                 .filter(cmd -> cmd.name().contains(query))
                 .filter(cmd -> pinecone.canUse(cmd, cx.getUser(), cx.getMember()))
-                .sorted(Comparator.comparing((CommandInfo cmd) -> !cmd.name().startsWith(query)).thenComparing(CommandInfo::name))
+                .sorted(Comparator.comparing((CommandInfo cmd) -> !cmd.name().startsWith(query))
+                        .thenComparing(CommandInfo::name))
                 .limit(Autocompleter.MAX_CHOICES)
                 .map(cmd -> new Command.Choice(choiceName(cmd), cmd.name()))
                 .toList();
@@ -167,7 +166,7 @@ public final class Help extends AbstractSlashCommand {
                 .append(subcmd.description())
                 .append("**\n");
 
-        for (var opt: subcmd.options()) {
+        for (var opt : subcmd.options()) {
             builder.append("\t* `")
                     .append(opt.required() ? '<' : '[')
                     .append(opt.name())

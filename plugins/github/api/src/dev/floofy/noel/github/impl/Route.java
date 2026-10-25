@@ -15,13 +15,12 @@
 
 package dev.floofy.noel.github.impl;
 
-import okhttp3.HttpUrl;
-
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import okhttp3.HttpUrl;
 
 /// A parsed route template, such as `/repos/:owner/:repo/issues`.
 ///
@@ -39,7 +38,9 @@ record Route(String template, List<Segment> segments, Set<String> parameters) {
     sealed interface Segment {}
 
     record Literal(String text) implements Segment {}
+
     record Parameter(String name) implements Segment {}
+
     record Rest(String name) implements Segment {}
 
     /// Parses a template.

@@ -17,11 +17,10 @@ package dev.floofy.noel;
 
 import dev.floofy.noel.pinecone.CommandInfo;
 import dev.floofy.noel.pinecone.CommandInterceptor;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.User;
-
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.User;
 
 /// The main framework that does all the processing of slash commands.
 public interface Pinecone {

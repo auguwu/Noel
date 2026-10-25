@@ -17,7 +17,8 @@ package dev.floofy.noel.github.api.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/// [Read more in the GitHub API documentation for `GET /repos/{owner}/{repo}`](https://docs.github.com/en/rest/repos/repos?apiVersion=2026-03-10#get-a-repository)
+/// [Read more in the GitHub API documentation for `GET
+/// /repos/{owner}/{repo}`](https://docs.github.com/en/rest/repos/repos?apiVersion=2026-03-10#get-a-repository)
 public record Repository(
         int id,
         String name,
@@ -28,10 +29,7 @@ public record Repository(
         boolean fork,
         @JsonProperty("stargazers_count") int stars,
         @JsonProperty("open_issues_count") int openIssues,
-        License license
-) {
+        License license) {
     public record License(
-            String name,
-            @JsonProperty("spdx_id") String spdxId
-    ) {}
+            String name, @JsonProperty("spdx_id") String spdxId) {}
 }

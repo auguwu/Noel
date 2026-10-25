@@ -37,20 +37,27 @@ public final class AboutMe extends AbstractSlashCommand {
         final var enabledPlugins = manager.getEnabledPlugins();
 
         cx.replyEmbeds(new EmbedBuilder()
-                .setAuthor(String.format("%s#%s", self.getName(), self.getDiscriminator()))
-                .setThumbnail(self.getAvatarUrl())
-                .setDescription(":wave: **I am a simple utility bot that helps aid running this server!**")
-                .setColor(Noel.EMBED_COLOUR)
-                .addField("Plugins", String.format("**%d** enabled | **%d** loaded", enabledPlugins.size(), loadedPlugins.size()), true)
-                .addField("Bot Information", String.format(
-                        "<a:noel:843673536392724500> **%s+%s** | JDA: **%s** | Java: **%s** [%s]",
-                        BuildInfo.getVersion(),
-                        BuildInfo.getGitCommit(),
-                        JDAInfo.VERSION,
-                        System.getProperty("java.version"),
-                        System.getProperty("java.vendor")
-                ), true)
-                .setFooter("Source Code: https://github.com/auguwu/Noel")
-                .build()).queue();
+                        .setAuthor(String.format("%s#%s", self.getName(), self.getDiscriminator()))
+                        .setThumbnail(self.getAvatarUrl())
+                        .setDescription(":wave: **I am a simple utility bot that helps aid running this server!**")
+                        .setColor(Noel.EMBED_COLOUR)
+                        .addField(
+                                "Plugins",
+                                String.format(
+                                        "**%d** enabled | **%d** loaded", enabledPlugins.size(), loadedPlugins.size()),
+                                true)
+                        .addField(
+                                "Bot Information",
+                                String.format(
+                                        "<a:noel:843673536392724500> **%s+%s** | JDA: **%s** | Java: **%s** [%s]",
+                                        BuildInfo.getVersion(),
+                                        BuildInfo.getGitCommit(),
+                                        JDAInfo.VERSION,
+                                        System.getProperty("java.version"),
+                                        System.getProperty("java.vendor")),
+                                true)
+                        .setFooter("Source Code: https://github.com/auguwu/Noel")
+                        .build())
+                .queue();
     }
 }

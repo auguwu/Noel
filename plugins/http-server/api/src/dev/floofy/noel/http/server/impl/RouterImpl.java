@@ -19,7 +19,6 @@ import dev.floofy.noel.http.server.HttpMethod;
 import dev.floofy.noel.http.server.Request;
 import dev.floofy.noel.http.server.Response;
 import dev.floofy.noel.http.server.Router;
-
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.BiConsumer;

@@ -15,12 +15,11 @@
 
 package dev.floofy.noel.pinecone;
 
+import dev.floofy.noel.Pinecone;
+import dev.floofy.noel.pinecone.impl.AutocompleteContextImpl;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
-
-import dev.floofy.noel.Pinecone;
-import dev.floofy.noel.pinecone.impl.AutocompleteContextImpl;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.CommandAutoCompleteInteraction;
 
@@ -78,14 +77,18 @@ public final class Autocompleter {
     /// @param typed       what the user has typed so far
     /// @return at most [#MAX_CHOICES] choices
     /// @throws Exception whatever the handler thrown
-    public List<Command.Choice> complete(Pinecone pinecone, CommandAutoCompleteInteraction interaction, String typed) throws Exception {
+    public List<Command.Choice> complete(Pinecone pinecone, CommandAutoCompleteInteraction interaction, String typed)
+            throws Exception {
         Objects.requireNonNull(interaction, "interaction");
         Objects.requireNonNull(typed, "typed");
 
         final Object value = convert(typed.strip());
         final Object result;
         try {
-            result = method.invoke(instance, new AutocompleteContextImpl(interaction, pinecone), valueType == String.class ? typed : value);
+            result = method.invoke(
+                    instance,
+                    new AutocompleteContextImpl(interaction, pinecone),
+                    valueType == String.class ? typed : value);
         } catch (InvocationTargetException ex) {
             if (ex.getCause() instanceof Exception cause) {
                 throw cause;

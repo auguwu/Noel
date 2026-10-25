@@ -23,8 +23,7 @@ import okhttp3.OkHttpClient;
 
 @Descriptor(
         id = "dev.floofy.noel.plugins.HttpClientPlugin",
-        description = "Plugin that exports `okhttp3.OkHttpClient` to plugins"
-)
+        description = "Plugin that exports `okhttp3.OkHttpClient` to plugins")
 public final class HttpClientPlugin extends Plugin {
     @Override
     protected void configure() {
@@ -34,8 +33,6 @@ public final class HttpClientPlugin extends Plugin {
     @Provides
     @Singleton
     OkHttpClient client() {
-        return new OkHttpClient.Builder()
-                .followRedirects(true)
-                .build();
+        return new OkHttpClient.Builder().followRedirects(true).build();
     }
 }

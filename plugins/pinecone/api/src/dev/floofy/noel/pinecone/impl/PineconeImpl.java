@@ -498,14 +498,17 @@ public final class PineconeImpl extends ListenerAdapter implements Pinecone, Aut
         final var chain = new ArrayList<>(interceptors);
         chain.addAll(registered.get().interceptors());
 
-        for (var interceptor: chain) {
+        for (var interceptor : chain) {
             try {
                 if (!interceptor.isVisibleTo(user, member, command)) {
                     return false;
                 }
             } catch (RuntimeException ex) {
-                LOG.warn("interceptor {} failed in isVisibleTo; hiding /{}",
-                        interceptor.getClass().getName(), command.name(), ex);
+                LOG.warn(
+                        "interceptor {} failed in isVisibleTo; hiding /{}",
+                        interceptor.getClass().getName(),
+                        command.name(),
+                        ex);
 
                 return false;
             }

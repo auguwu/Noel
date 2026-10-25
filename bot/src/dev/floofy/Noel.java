@@ -19,7 +19,6 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import dev.floofy.noel.Settings;
 import dev.floofy.noel.plugins.PluginManager;
-
 import java.awt.*;
 import java.io.IOError;
 import java.util.LinkedHashMap;

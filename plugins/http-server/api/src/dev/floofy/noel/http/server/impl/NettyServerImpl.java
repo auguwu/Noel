@@ -31,14 +31,13 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.util.concurrent.DefaultThreadFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import tools.jackson.databind.ObjectMapper;
-
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import tools.jackson.databind.ObjectMapper;
 
 /// A [Server] built on Netty.
 ///
@@ -84,14 +83,17 @@ public final class NettyServerImpl implements Server {
     @Override
     public synchronized void start() throws Exception {
         if (this.channel != null) {
-            throw new IllegalStateException(String.format("HTTP server is already running on %s", channel.localAddress()));
+            throw new IllegalStateException(
+                    String.format("HTTP server is already running on %s", channel.localAddress()));
         }
 
         final var addr = new InetSocketAddress(address, port);
         LOG.info("bootstrapping HTTP server with address {}", addr);
 
-        this.bossGroup = new MultiThreadIoEventLoopGroup(1, new DefaultThreadFactory("Noel-NettyBoss", true), NioIoHandler.newFactory());
-        this.workerGroup = new MultiThreadIoEventLoopGroup(0, new DefaultThreadFactory("Noel-NettyWorker", true), NioIoHandler.newFactory());
+        this.bossGroup = new MultiThreadIoEventLoopGroup(
+                1, new DefaultThreadFactory("Noel-NettyBoss", true), NioIoHandler.newFactory());
+        this.workerGroup = new MultiThreadIoEventLoopGroup(
+                0, new DefaultThreadFactory("Noel-NettyWorker", true), NioIoHandler.newFactory());
 
         try {
             this.channel = new ServerBootstrap()
@@ -198,7 +200,8 @@ public final class NettyServerImpl implements Server {
 
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-            LOG.debug("closing connection from {} after an error:", ctx.channel().remoteAddress(), cause);
+            LOG.debug(
+                    "closing connection from {} after an error:", ctx.channel().remoteAddress(), cause);
             ctx.close();
         }
 

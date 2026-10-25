@@ -17,10 +17,6 @@ package dev.floofy.noel.github.api.models;
 
 import java.util.List;
 
-/// [Read more here on the GitHub API documentation](https://docs.github.com/en/rest/search/search?apiVersion=2026-03-10)
-public record SearchResult<T>(
-        int totalCount,
-        boolean incompleteResults,
-        List<T> items
-) {
-}
+/// [Read more here on the GitHub API
+/// documentation](https://docs.github.com/en/rest/search/search?apiVersion=2026-03-10)
+public record SearchResult<T>(int totalCount, boolean incompleteResults, List<T> items) {}

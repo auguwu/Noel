@@ -16,9 +16,7 @@
 package dev.floofy.noel.github;
 
 import com.google.inject.Singleton;
-import dev.floofy.noel.DiscordPlugin;
 import dev.floofy.noel.HttpClientPlugin;
-import dev.floofy.noel.PineconePlugin;
 import dev.floofy.noel.github.api.Client;
 import dev.floofy.noel.github.impl.ClientImpl;
 import dev.floofy.noel.plugins.Descriptor;
@@ -27,8 +25,7 @@ import dev.floofy.noel.plugins.Plugin;
 @Descriptor(
         id = "dev.floofy.noel.plugins.GitHubPlugin",
         description = "Plugin that provides access to the GitHub API",
-        dependsOn = {HttpClientPlugin.class}
-)
+        dependsOn = {HttpClientPlugin.class})
 public final class GitHubPlugin extends Plugin {
     @Override
     protected void configure() {

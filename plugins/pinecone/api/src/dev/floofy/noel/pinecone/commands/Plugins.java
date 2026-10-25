@@ -17,7 +17,6 @@ package dev.floofy.noel.pinecone.commands;
 
 import com.google.inject.Inject;
 import dev.floofy.Noel;
-import dev.floofy.noel.Pinecone;
 import dev.floofy.noel.pinecone.AbstractSlashCommand;
 import dev.floofy.noel.pinecone.AutocompleteContext;
 import dev.floofy.noel.pinecone.CommandContext;
@@ -26,17 +25,16 @@ import dev.floofy.noel.pinecone.interceptors.AdminOnly;
 import dev.floofy.noel.plugins.Descriptor;
 import dev.floofy.noel.plugins.PluginException;
 import dev.floofy.noel.plugins.PluginManager;
-import net.dv8tion.jda.api.components.container.Container;
-import net.dv8tion.jda.api.components.container.ContainerChildComponent;
-import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
-import net.dv8tion.jda.api.interactions.commands.Command;
-import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
-
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import net.dv8tion.jda.api.components.container.Container;
+import net.dv8tion.jda.api.components.container.ContainerChildComponent;
+import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
+import net.dv8tion.jda.api.interactions.commands.Command;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 
 @SlashCommand(name = "plugins", description = "plugin management")
 @Intercept(AdminOnly.class)
@@ -54,43 +52,37 @@ public final class Plugins extends AbstractSlashCommand {
     public void list(CommandContext cx) {
         final var loadedPlugins = plugins.getLoadedPlugins();
         final var enabledPlugins = plugins.getEnabledPlugins();
-        final var container = Container
-                .of(
-                        TextDisplay.ofFormat("## Plugins [enabled %d / loaded %d]", enabledPlugins.size(), loadedPlugins.size()),
-                        loadedPlugins.stream()
-                                .map(plugin -> {
-                                    var enabled = enabledPlugins.contains(plugin);
-                                    return TextDisplay.ofFormat(
-                                            "~> %s **%s**: **%s**",
-                                            enabled ? "✅" : "❌",
-                                            plugin.id(),
-                                            plugin.description()
-                                    );
-                                }).toArray(ContainerChildComponent[]::new)
-                );
+        final var container = Container.of(
+                TextDisplay.ofFormat(
+                        "## Plugins [enabled %d / loaded %d]", enabledPlugins.size(), loadedPlugins.size()),
+                loadedPlugins.stream()
+                        .map(plugin -> {
+                            var enabled = enabledPlugins.contains(plugin);
+                            return TextDisplay.ofFormat(
+                                    "~> %s **%s**: **%s**", enabled ? "✅" : "❌", plugin.id(), plugin.description());
+                        })
+                        .toArray(ContainerChildComponent[]::new));
 
         cx.reply(new MessageCreateBuilder()
-                .useComponentsV2()
-                .addComponents(container.withAccentColor(Noel.EMBED_COLOUR))
-                .build())
+                        .useComponentsV2()
+                        .addComponents(container.withAccentColor(Noel.EMBED_COLOUR))
+                        .build())
                 .setEphemeral(true)
                 .queue();
     }
 
     @Subcommand(description = "enables a plugin, and any of its dependencies that are off")
-    public void enable(
-            CommandContext cx,
-            @Option(name = "id", description = "plugin id", required = true) String id
-    ) {
+    public void enable(CommandContext cx, @Option(name = "id", description = "plugin id", required = true) String id) {
         deferReply(cx, () -> String.format("✅ **Enabled Plugins**:\n%s", render(plugins.enable(id))));
     }
 
     @Subcommand(description = "disables a plugin, and every plugin that depends on it")
-    public void disable(
-            CommandContext cx,
-            @Option(name = "id", description = "plugin id", required = true) String id
-    ) {
-        deferReply(cx, () -> String.format("✅ **Disabled Plugins (and its dependents)**:\n%s", render(plugins.disable(id, Set.of(self.id())))));
+    public void disable(CommandContext cx, @Option(name = "id", description = "plugin id", required = true) String id) {
+        deferReply(
+                cx,
+                () -> String.format(
+                        "✅ **Disabled Plugins (and its dependents)**:\n%s",
+                        render(plugins.disable(id, Set.of(self.id())))));
     }
 
     @Autocomplete("id")
@@ -116,13 +108,20 @@ public final class Plugins extends AbstractSlashCommand {
         try {
             message = action.get();
         } catch (PluginException ex) {
-            cx.getInteraction().getHook().sendMessageFormat(":x: **|> %s**", ex.getMessage()).queue();
+            cx.getInteraction()
+                    .getHook()
+                    .sendMessageFormat(":x: **|> %s**", ex.getMessage())
+                    .queue();
             return;
         }
 
         cx.getPinecone().resync().whenComplete((_, error) -> {
             if (error != null) {
-                cx.getInteraction().getHook().sendMessageFormat("%s\n\n:warning: **|> syncing slash commands for plugin to Discord failed!**", message).queue();
+                cx.getInteraction()
+                        .getHook()
+                        .sendMessageFormat(
+                                "%s\n\n:warning: **|> syncing slash commands for plugin to Discord failed!**", message)
+                        .queue();
             } else {
                 cx.getInteraction().getHook().sendMessage(message).queue();
             }
