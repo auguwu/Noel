@@ -15,14 +15,21 @@
 
 package dev.floofy.noel;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.io.IOException;
+import java.util.Objects;
 import java.util.Properties;
 
+/// Version and build information for this build of Noel.
+///
+/// The values come from `build-data.properties`, which the `//bot:build_data` Bazel genrule
+/// writes from the Bazel's workspace status at build time.
+///
+/// The file is read lazily, on the first call to an accessor. If it is missing
+/// or unreadable, the build is broken rather than misconfigured, so the process
+/// exits immediately instead of throwing.
 public final class BuildInfo {
     private static final Properties properties = new Properties();
-    private static final long startedAt = System.currentTimeMillis();
+    private static final long bootstrappedAt = System.currentTimeMillis();
 
     private static final String VERSION_KEY = "noel.version";
     private static final String GIT_COMMIT_KEY = "noel.git.commit";
@@ -31,32 +38,37 @@ public final class BuildInfo {
 
     private BuildInfo() {}
 
-    private static void loadProperties() {
-        if (!properties.isEmpty()) {
-            return;
-        }
-
-        try (var stream = BuildInfo.class.getResourceAsStream(BUILD_DATA_PROPERTIES)) {
-            if (stream == null) {
-                System.err.println(
-                        "FATAL: Couldn't find `"
-                                + BUILD_DATA_PROPERTIES
-                                + "' in classpath, should never happen, using default values"
-                                + " instead");
-                return;
-            }
-
-            properties.load(stream);
-        } catch (IOException ex) {
-            System.err.println(
-                    "FATAL: tried to read from `" + BUILD_DATA_PROPERTIES + "` but failed");
-            ex.printStackTrace();
-            System.exit(128);
-        }
+    /// Returns the version Noel was built as.
+    /// @throws RuntimeException if the build data has no version
+    public static String getVersion() {
+        return getProperty(VERSION_KEY);
     }
 
-    @NotNull
-    private static String getProperty(@NotNull String key) {
+    /// Returns the Git commit Noel was built from.
+    /// @throws RuntimeException if the build data has no commit
+    public static String getGitCommit() {
+        return getProperty(GIT_COMMIT_KEY);
+    }
+
+    /// Returns when this binary was built.
+    /// @return an ISO-8601 instant, such as `2026-10-24T19:13:00Z`, from
+    ///         `NOEL_BUILD_TIMESTAMP`; parse it with [java.time.Instant#parse(CharSequence)]
+    /// @throws RuntimeException if the build data has no timestamp
+    public static String getBuildTimestamp() {
+        return getProperty(BUILD_TIMESTAMP_KEY);
+    }
+
+    /// Returns when this class was first used, as a stand-in for when Noel
+    /// started. [dev.floofy.Noel] reads the build data before anything
+    /// else, so in practice this is within milliseconds of process start.
+    ///
+    /// @return milliseconds since the Unix epoch, as from [System#currentTimeMillis()]
+    public static long getStartedAt() {
+        return bootstrappedAt;
+    }
+
+    private static String getProperty(String key) {
+        Objects.requireNonNull(key, "key");
         loadProperties();
 
         var value = properties.get(key);
@@ -67,26 +79,30 @@ public final class BuildInfo {
         assert value instanceof String : "value was not a string";
 
         var val = value.toString();
-        return val.substring(1, val.length() - 1); // removes any quotes (`"`)
+        if (val.startsWith("\"") && val.endsWith("\"")) {
+            return val.substring(1, val.length() - 1); // removes any quotes (`"`)
+        } else {
+            return val;
+        }
     }
 
-    /** Returns the current version of this build. */
-    @NotNull
-    public static String getVersion() {
-        return getProperty(VERSION_KEY);
-    }
+    private static void loadProperties() {
+        if (!properties.isEmpty()) {
+            return;
+        }
 
-    @NotNull
-    public static String getGitCommit() {
-        return getProperty(GIT_COMMIT_KEY);
-    }
+        try (var stream = BuildInfo.class.getResourceAsStream(BUILD_DATA_PROPERTIES)) {
+            if (stream == null) {
+                System.err.printf("FATAL: cannot find `%s` in classpath%n", BUILD_DATA_PROPERTIES);
+                System.exit(1);
+            }
 
-    @NotNull
-    public static String getBuildTimestamp() {
-        return getProperty(BUILD_TIMESTAMP_KEY);
-    }
+            properties.load(stream);
+        } catch (IOException ex) {
+            System.err.printf("FATAL: cannot read properties file from `%s`%n", BUILD_DATA_PROPERTIES);
+            ex.printStackTrace();
 
-    public static long getStartedAt() {
-        return startedAt;
+            System.exit(128);
+        }
     }
 }

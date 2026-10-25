@@ -129,6 +129,7 @@ fabric.properties
 !.idea/runConfigurations
 
 # others
-bot/resources/logback/logback.properties
+botv1/resources/logback/logback.properties
 config.yaml
 .direnv/
+.nix.bazelrc

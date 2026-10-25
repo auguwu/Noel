@@ -17,8 +17,10 @@ build:dbg --compilation_mode=dbg
 build:opt --compilation_mode=opt
 
 build --workspace_status_command=./hack/stamp.sh
-build --java_language_version=21
+build --java_language_version=25
 
+# Disables telemetry for Aspect
 common --repo_env=ASPECT_TOOLS_TELEMETRY=
 
 try-import %workspace%/.usr.bazelrc
+try-import %workspace%/.nix.bazelrc

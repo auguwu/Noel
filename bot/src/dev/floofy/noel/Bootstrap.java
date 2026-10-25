@@ -16,33 +16,36 @@
 package dev.floofy.noel;
 
 import dev.floofy.Noel;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Date;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class Bootstrap {
     private static final Logger LOG = LoggerFactory.getLogger(Bootstrap.class);
 
-    public static void main(String[] args) {
-        Thread.currentThread().setName("Noel-Bootstrap");
-        Runtime.getRuntime().addShutdownHook(new Thread(Noel::shutdown, "Noel-ShutdownThread"));
+    static void main() {
+        Thread.currentThread().setName("Noel-BootstrapThread");
+
+        final Noel noel = new Noel();
+        Runtime.getRuntime().addShutdownHook(new Thread(noel::shutdown, "Noel-ShutdownThread"));
 
         LOG.info(
-                "Bootstrapping Noel v{}+{} (built at {})",
+                "Bootstrap Noel v{}+{} (built at {})",
                 BuildInfo.getVersion(),
                 BuildInfo.getGitCommit(),
                 new SimpleDateFormat("MMMM dd, yyyy @ hh:mm:ss z")
                         .format(Date.from(Instant.parse(BuildInfo.getBuildTimestamp()))));
 
-        final Noel noel = new Noel();
         try {
             noel.bootstrap();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            LOG.error("failed to bootstrap Noel:", ex);
+
+            // In case for plugins that already started threads (JDA, Netty) would otherwise
+            // keep the JVM alive; exiting runs the shutdown hook, which destructs them.
+            System.exit(1);
         }
     }
 }

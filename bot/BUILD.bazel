@@ -13,8 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@rules_java//java:defs.bzl", "java_binary", "java_library")
 load("@rules_jvm_external//:defs.bzl", "artifact")
-load("@rules_java//java:defs.bzl", "java_binary")
+
+package(
+    default_visibility = ["//visibility:public"],
+)
 
 _BUILD_DATA_BASH_SCRIPT = """set -euo pipefail
 
@@ -65,49 +69,47 @@ EOF
 genrule(
     name = "build_data",
     outs = ["build-data.properties"],
+    cmd = _BUILD_DATA_BASH_SCRIPT,
     stamp = 1,
     visibility = ["//bot:__pkg__"],
-    cmd = _BUILD_DATA_BASH_SCRIPT
 )
 
 java_library(
     name = "bot",
-    srcs = glob(["src/**/*.java"], exclude = ["src/dev/floofy/noel/Bootstrap.java"]),
-    visibility = ["//visibility:public"],
+    srcs = glob(
+        ["src/dev/floofy/**/*.java"],
+        exclude = ["src/dev/floofy/noel/Bootstrap.java"],
+    ),
     resources = [":build_data"],
+    runtime_deps = [],
     deps = [
-        "//modules",
-        "//modules/settings",
-
-        artifact("org.jetbrains:annotations"),
+        "//plugins:api",
+        "//settings",
+        artifact("ch.qos.logback:logback-classic"),
+        artifact("org.jspecify:jspecify"),
         artifact("com.google.inject:guice"),
         artifact("org.slf4j:slf4j-api"),
-        artifact("net.dv8tion:JDA")
-    ]
+    ],
 )
 
 java_binary(
     name = "bootstrap",
     srcs = ["src/dev/floofy/noel/Bootstrap.java"],
     main_class = "dev.floofy.noel.Bootstrap",
-    stamp = 1,
+    resource_strip_prefix = "bot/resources/logback",
     resources = ["resources/logback/logback.xml"],
-    resource_strip_prefix = "bot",
-    visibility = ["//visibility:public"],
+    stamp = 1,
+    visibility = ["//:__pkg__"],
     runtime_deps = [
-        "//modules/http/client",
-        "//modules/http/server",
-        "//modules/settings",
-        "//modules/mongodb",
-        "//modules/discord",
-        "//pinecone"
+        "//plugins/discord",
+        "//plugins/github",
+        "//plugins/http-client",
+        "//plugins/pinecone",
     ],
     deps = [
-        "//bot",
-
+        ":bot",
         artifact("ch.qos.logback:logback-classic"),
         artifact("ch.qos.logback:logback-core"),
-        artifact("org.jetbrains:annotations"),
-        artifact("org.slf4j:slf4j-api")
-    ]
+        artifact("org.slf4j:slf4j-api"),
+    ],
 )

@@ -16,5 +16,5 @@
 alias(
     name = "noel",
     actual = "//bot:bootstrap",
-    visibility = ["//visibility:public"]
+    visibility = ["//visibility:public"],
 )

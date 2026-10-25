@@ -13,23 +13,39 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 {
-  temurin-bin-21,
-  bazel_8,
-  clang_21,
+  llvmPackages_21,
+  temurin-bin-25,
+  bazel_9,
   mkShell,
-}:
+  lib,
+  coreutils,
+  writeText,
+  stdenv
+}: let
+    toolsPath = lib.makeBinPath (stdenv.initialPath ++ [
+        llvmPackages_21.bintools
+        llvmPackages_21.clang
+        coreutils
+    ]);
+
+    nixBazelrc = writeText ".nix.bazelrc" ''
+        common --repo_env=CC=${llvmPackages_21.clang}/bin/clang
+        common --repo_env=AR=${llvmPackages_21.bintools}/bin/ar
+        common --repo_env=PATH=${toolsPath}
+        common --repo_env=JAVA_HOME=${temurin-bin-25}
+    '';
+in
 mkShell {
   packages = [
-    temurin-bin-21
-    bazel_8
-    clang_21
+    temurin-bin-25
+    bazel_9
+    llvmPackages_21.bintools
+    llvmPackages_21.clang
   ];
 
   name = "noel-bot-dev";
   shellHook = ''
-    # For some reason, the new Bazel plugin for IntelliJ and for building
-    # require a C++ toolchain... weird?
-    export CC="${clang_21}/bin/clang"
-    export CXX="${clang_21}/bin/clang++"
+    rm .nix.bazelrc
+    ln -s ${nixBazelrc} .nix.bazelrc
   '';
 }

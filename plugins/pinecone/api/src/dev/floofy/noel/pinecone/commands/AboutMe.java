@@ -1,0 +1,56 @@
+/// 🐾✨ Noel: Discord bot made to manage my servers made in Java
+/// Copyright 2021-2026 Noel Towa <cutie@floofy.dev>
+///
+/// Licensed under the Apache License, Version 2.0 (the "License");
+/// you may not use this file except in compliance with the License.
+/// You may obtain a copy of the License at
+///
+///     http://www.apache.org/licenses/LICENSE-2.0
+///
+/// Unless required by applicable law or agreed to in writing, software
+/// distributed under the License is distributed on an "AS IS" BASIS,
+/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+/// See the License for the specific language governing permissions and
+/// limitations under the License.
+
+package dev.floofy.noel.pinecone.commands;
+
+import com.google.inject.Inject;
+import dev.floofy.Noel;
+import dev.floofy.noel.BuildInfo;
+import dev.floofy.noel.pinecone.AbstractSlashCommand;
+import dev.floofy.noel.pinecone.CommandContext;
+import dev.floofy.noel.pinecone.annotations.SlashCommand;
+import dev.floofy.noel.plugins.PluginManager;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.JDAInfo;
+
+@SlashCommand(name = "about", description = "Shows general information about this bot")
+public final class AboutMe extends AbstractSlashCommand {
+    @Inject
+    private PluginManager manager;
+
+    @Override
+    public void execute(CommandContext cx) throws Exception {
+        final var self = cx.getSelfUser();
+        final var loadedPlugins = manager.getLoadedPlugins();
+        final var enabledPlugins = manager.getEnabledPlugins();
+
+        cx.replyEmbeds(new EmbedBuilder()
+                .setAuthor(String.format("%s#%s", self.getName(), self.getDiscriminator()))
+                .setThumbnail(self.getAvatarUrl())
+                .setDescription(":wave: **I am a simple utility bot that helps aid running this server!**")
+                .setColor(Noel.EMBED_COLOUR)
+                .addField("Plugins", String.format("**%d** enabled | **%d** loaded", enabledPlugins.size(), loadedPlugins.size()), true)
+                .addField("Bot Information", String.format(
+                        "<a:noel:843673536392724500> **%s+%s** | JDA: **%s** | Java: **%s** [%s]",
+                        BuildInfo.getVersion(),
+                        BuildInfo.getGitCommit(),
+                        JDAInfo.VERSION,
+                        System.getProperty("java.version"),
+                        System.getProperty("java.vendor")
+                ), true)
+                .setFooter("Source Code: https://github.com/auguwu/Noel")
+                .build()).queue();
+    }
+}

@@ -13,13 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@aspect_rules_lint//format:defs.bzl", "format_multirun")
 load("@rules_java//java:defs.bzl", "java_binary")
+load("@rules_jvm_external//:defs.bzl", "artifact")
 
 package(default_visibility = ["//:__subpackages__"])
 
 java_binary(
-    name = "google-javaformat",
+    name = "javaformat",
     jvm_flags = [
         "--add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
         "--add-exports jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
@@ -27,7 +27,8 @@ java_binary(
         "--add-exports jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
         "--add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
     ],
-    main_class = "com.google.googlejavaformat.java.Main",
-    runtime_deps = ["@google-java-format//jar"],
-    args = ["--aosp"]
+    main_class = "com.palantir.javaformat.java.Main",
+    runtime_deps = [
+        artifact("dev.openjavaformat:open-java-format"),
+    ],
 )

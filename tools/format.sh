@@ -25,4 +25,4 @@ fi
 workdir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")"/.. &> /dev/null && pwd)
 files=$(find "$workdir" -name "*.java" -type f -print)
 
-exec find "$workdir" -name "*.java" -type f -print | xargs bazel run //tools:google-javaformat -- --replace
+exec find "$workdir" -name "*.java" -type f -print | xargs bazel run //tools:javaformat -- --replace

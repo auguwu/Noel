@@ -17,156 +17,173 @@ package dev.floofy;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import dev.floofy.noel.Settings;
+import dev.floofy.noel.plugins.PluginManager;
 
-import dev.floofy.noel.ExecutorsModule;
-import dev.floofy.noel.modules.AbstractNoelModule;
-import dev.floofy.noel.modules.ServiceLocator;
-
-import org.jetbrains.annotations.NotNull;
+import java.awt.*;
+import java.io.IOError;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOError;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Stream;
+import sun.misc.Signal;
 
 public final class Noel {
-    private static final Map<Integer, Function<Object, Boolean>> CODES = new HashMap<>();
+    public static final String[] PLUGIN_PACKAGES = {"dev.floofy.noel"};
+    public static final Color EMBED_COLOUR = Color.decode("#f4b5d5");
     private static final Logger LOG = LoggerFactory.getLogger(Noel.class);
-    private static List<AbstractNoelModule> modules;
-    private static Noel instance;
+
+    private static final Map<Integer, Predicate<Throwable>> CODES = new LinkedHashMap<>();
 
     static {
-        CODES.putAll(
-                Map.of(
-                        128, (i) -> i instanceof InternalError,
-                        127, (i) -> i instanceof OutOfMemoryError,
-                        126, (i) -> i instanceof StackOverflowError,
-                        125, (i) -> i instanceof UnknownError,
-                        124, (i) -> i instanceof IOError,
-                        123, (i) -> i instanceof LinkageError));
-
-        modules = ServiceLocator.loadModules();
+        CODES.put(128, InternalError.class::isInstance);
+        CODES.put(127, OutOfMemoryError.class::isInstance);
+        CODES.put(126, StackOverflowError.class::isInstance);
+        CODES.put(125, UnknownError.class::isInstance);
+        CODES.put(124, IOError.class::isInstance);
+        CODES.put(123, LinkageError.class::isInstance);
     }
 
-    private Injector injector;
+    private final AtomicBoolean shuttingDown = new AtomicBoolean();
+    private final CountDownLatch stopped = new CountDownLatch(1);
+    private final ScheduledExecutorService scheduler =
+            Executors.newScheduledThreadPool(2, runnable -> new Thread(runnable, "Noel-ScheduledExecutorService"));
 
-    public static void shutdown() {
-        if (instance == null) {
-            return;
+    private final ExecutorService executor = Executors.newCachedThreadPool(new ThreadFactory() {
+        private final AtomicInteger count = new AtomicInteger();
+
+        @Override
+        public Thread newThread(@NonNull Runnable runnable) {
+            final var thread = new Thread(runnable, "Noel-ExecutorService[%d]".formatted(count.incrementAndGet()));
+            thread.setDaemon(true);
+            return thread;
         }
+    });
 
-        LOG.warn("shutting down...");
-        if (instance.injector == null) {
-            LOG.warn(
-                    "will not shutdown as no Guice injector is available (required for module"
-                        + " teardown)");
-            return;
-        }
+    private volatile PluginManager plugins;
+    private volatile Injector injector;
 
-        for (AbstractNoelModule mod : getInstance().getModules()) {
-            LOG.warn("tearing down module {}[{}]", mod.getInfo().name(), mod.getClass().getName());
+    public Noel() {}
 
-            final var teardownMethod = mod.getTeardownMethod();
-            if (teardownMethod != null && teardownMethod.canAccess(mod)) {
-                try {
-                    Class<?>[] paramTypes = teardownMethod.getParameterTypes();
-                    Object[] args = new Object[paramTypes.length];
-                    for (int i = 0; i < paramTypes.length; i++) {
-                        args[i] = getInstance().getInjector().getInstance(paramTypes[i]);
-                    }
-
-                    teardownMethod.invoke(mod, args);
-                } catch (IllegalAccessException | InvocationTargetException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }
-
-        instance = null;
-        LOG.warn("goodbye!! ^TwT^");
-    }
-
+    /// Loads the configuration, builds the core injector, loads and enables every
+    /// plugin, then blocks until [#shutdown()] is called.
+    ///
+    /// @throws IllegalStateException if called more than once
+    /// @throws Exception if the configuration cannot be loaded, or plugins fail to
+    ///         load. Individual plugins failing to *enable* is logged, not thrown.
     public void bootstrap() throws Exception {
-        if (instance == null) {
-            instance = this;
+        if (this.injector != null) {
+            throw new IllegalStateException("`bootstrap()` cannot be called more than once");
         }
 
         installDefaultThreadExceptionHandler();
 
-        assert injector == null : "`bootstrap' cannot be called more than twice";
-        injector =
-                Guice.createInjector(
-                        Stream.concat(Stream.of(new ExecutorsModule()), modules.stream()).toList());
+        final Settings settings = Settings.load();
+        installReloadSignalHandler(settings);
 
-        for (AbstractNoelModule mod : modules) {
-            LOG.info("Located module {}", mod.getClass());
+        this.injector = Guice.createInjector(binder -> {
+            binder.bind(ScheduledExecutorService.class).toInstance(scheduler);
+            binder.bind(ExecutorService.class).toInstance(executor);
+            binder.bind(Settings.class).toInstance(settings);
+            binder.bind(Noel.class).toInstance(this);
 
-            final var initMethod = mod.getInitializerMethod();
-            if (initMethod != null && initMethod.canAccess(mod)) {
-                LOG.trace("Calling initializer method of class {}", mod.getClass().getName());
+            binder.bind(PluginManager.class);
+        });
 
-                try {
-                    Class<?>[] paramTypes = initMethod.getParameterTypes();
-                    Object[] args = new Object[paramTypes.length];
-                    for (int i = 0; i < paramTypes.length; i++) {
-                        args[i] = injector.getInstance(paramTypes[i]);
-                    }
+        this.plugins = injector.getInstance(PluginManager.class);
+        final var loaded = this.plugins.loadAll(Noel.class.getClassLoader(), PLUGIN_PACKAGES);
+        final var enabled = this.plugins.enableAll();
 
-                    initMethod.invoke(mod, args);
-                } catch (IllegalAccessException | InvocationTargetException e) {
-                    throw new RuntimeException(e);
-                }
-            }
+        if (enabled.size() == loaded.size()) {
+            LOG.info("all {} plugin(s) are enabled", enabled.size());
+        } else {
+            LOG.warn("{} of {} plugin(s) are enabled! see the errors above ^^^", enabled.size(), loaded.size());
         }
 
-        Thread.currentThread().join();
+        stopped.await();
     }
 
-    public static Noel getInstance() {
-        assert instance != null : "you must bootstrap before getting an instance";
-        return instance;
+    /// Destructs every plugin, then shuts down the shared executors. Only the first
+    /// call does anything.
+    public void shutdown() {
+        if (!shuttingDown.compareAndSet(false, true)) {
+            return;
+        }
+
+        LOG.warn("Noel is shutting down!");
+        try {
+            if (this.plugins != null) {
+                plugins.close();
+            }
+        } catch (Exception ex) {
+            LOG.error("failed to destroy plugins:", ex);
+        } finally {
+            shutdownExecutor(this.scheduler);
+            shutdownExecutor(this.executor);
+
+            stopped.countDown();
+            LOG.warn("Goodbye! ^TwT^");
+
+            // Flush and close the appenders only after our last log line.
+            if (LoggerFactory.getILoggerFactory() instanceof ch.qos.logback.classic.LoggerContext context) {
+                context.stop();
+            }
+        }
     }
 
-    public List<AbstractNoelModule> getModules() {
-        return Collections.unmodifiableList(modules);
+    private void installReloadSignalHandler(Settings settings) {
+        try {
+            Signal.handle(new Signal("HUP"), _ -> {
+                if (shuttingDown.get()) {
+                    return;
+                }
+
+                LOG.info("received `SIGUP` signal, reloading configuration");
+                try {
+                    settings.reload();
+                } catch (Exception ex) {
+                    LOG.error("failed to reload configuration; keeping the current one", ex);
+                }
+            });
+        } catch (IllegalArgumentException _) {
+            LOG.warn("SIGHUP is not available on this platform; reloading by signal is disabled");
+        }
     }
 
-    @NotNull
-    public Injector getInjector() {
-        assert injector != null : "you must bootstrap before getting a Guice injector";
-        return injector;
+    private static void shutdownExecutor(ExecutorService executor) {
+        executor.shutdown();
+        try {
+            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException _) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 
     private void installDefaultThreadExceptionHandler() {
-        Thread.setDefaultUncaughtExceptionHandler(
-                (thread, ex) -> {
-                    if (ex instanceof Error) {
-                        LOG.error(
-                                "uncaught fatal exception in thread {} ({}):",
-                                thread.getName(),
-                                thread.threadId(),
-                                ex);
+        Thread.setDefaultUncaughtExceptionHandler((thread, ex) -> {
+            if (!(ex instanceof Error)) {
+                LOG.error("uncaught userland exception in thread {} ({}):", thread.getName(), thread.threadId(), ex);
 
-                        for (var entry : CODES.entrySet()) {
-                            if (entry.getValue().apply(ex)) {
-                                Runtime.getRuntime().halt(entry.getKey());
-                            }
-                        }
+                return;
+            }
 
-                        System.exit(1);
-                    } else {
-                        LOG.error(
-                                "uncaught user-land exception in thread {} ({}):",
-                                thread.getName(),
-                                thread.threadId(),
-                                ex);
-                    }
-                });
+            LOG.error("uncaught fatal exception in thread {} ({}):", thread.getName(), thread.threadId(), ex);
+
+            for (var entry : CODES.entrySet()) {
+                if (entry.getValue().test(ex)) {
+                    Runtime.getRuntime().halt(entry.getKey());
+                }
+            }
+
+            System.exit(1);
+        });
     }
 }

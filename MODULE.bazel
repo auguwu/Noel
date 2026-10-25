@@ -15,49 +15,60 @@
 
 module(
     name = "noel",
-    compatibility_level = 0,
-    repo_name = "dev_floofy_noel"
+    repo_name = "dev_floofy_noel",
 )
 
-bazel_dep(name = "rules_jvm_external", version = "6.8")
-bazel_dep(name = "rules_java", version = "8.16.1")
-bazel_dep(name = "aspect_rules_lint", version = "2.1.0")
-
-# Setup linters (Google Java Format)
-formatters = use_extension("@aspect_rules_lint//format:extensions.bzl", "tools")
-formatters.google_java_format()
-use_repo(formatters, "google-java-format")
+bazel_dep(name = "platforms", version = "1.1.0")
+bazel_dep(name = "rules_java", version = "9.9.0")
+bazel_dep(name = "rules_jvm_external", version = "7.2")
+bazel_dep(name = "aspect_rules_lint", version = "2.9.1")
+bazel_dep(name = "contrib_rules_jvm", version = "0.34.0")
 
 # Setup Maven repository
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
-    known_contributing_modules = ["noel", "protobuf"],
     artifacts = [
-        "io.netty:netty-transport-native-unix-common:4.2.10.Final",
-        "tools.jackson.dataformat:jackson-dataformat-yaml:3.0.4",
-        "io.opentelemetry:opentelemetry-exporter-otlp:1.59.0",
-        "tools.jackson.core:jackson-databind:3.0.4",
-        "io.opentelemetry:opentelemetry-api:1.59.0",
-        "io.opentelemetry:opentelemetry-sdk:1.59.0",
-        "io.netty:netty-codec-http:4.2.10.Final",
-        "ch.qos.logback:logback-classic:1.5.31",
-        "org.mongodb:mongodb-driver-sync:5.6.3",
-        "io.netty:netty-transport:4.2.10.Final",
-        "tools.jackson.core:jackson-core:3.0.4",
-        "org.jetbrains:annotations:26.0.2-1",
-        "ch.qos.logback:logback-core:1.5.31",
-        "io.netty:netty-buffer:4.2.10.Final",
-        "io.netty:netty-common:4.2.10.Final",
-        "com.squareup.okhttp3:okhttp:5.3.2",
+        "io.netty:netty-transport-native-unix-common:4.2.19.Final",
+        "tools.jackson.dataformat:jackson-dataformat-yaml:3.2.3",
+        "com.google.errorprone:error_prone_annotations:2.50.0",
+        "com.google.errorprone:error_prone_annotations:2.36.0",
+        "io.opentelemetry:opentelemetry-exporter-otlp:1.67.0",
+        "com.fasterxml.jackson.core:jackson-annotations:2.20",
+        "dev.openjavaformat:open-java-format:2.98.0.6",
+        "tools.jackson.core:jackson-databind:3.2.3",
+        "io.opentelemetry:opentelemetry-api:1.67.0",
+        "io.opentelemetry:opentelemetry-sdk:1.67.0",
+        "io.github.classgraph:classgraph:4.8.179",
+        "io.netty:netty-codec-http:4.2.19.Final",
+        "org.mongodb:mongodb-driver-sync:5.13.0",
+        "io.netty:netty-transport:4.2.19.Final",
+        "tools.jackson.core:jackson-core:3.2.3",
+        "ch.qos.logback:logback-classic:1.6.5",
+        "io.netty:netty-buffer:4.2.19.Final",
+        "io.netty:netty-common:4.2.19.Final",
+        "ch.qos.logback:logback-core:1.6.5",
+        "com.squareup.okhttp3:okhttp:5.5.0",
         "com.google.inject:guice:7.0.0",
-        "org.slf4j:slf4j-api:2.0.17",
-        "io.sentry:sentry:8.32.0",
-        "net.dv8tion:JDA:6.3.0",
+        "org.jspecify:jspecify:1.0.0",
+        "org.slf4j:slf4j-api:2.0.20",
+        "io.sentry:sentry:8.61.0",
+        "net.dv8tion:JDA:6.7.0",
+
+        # +=+=+=+=+=+=+=+ test deps
+        "org.junit.platform:junit-platform-reporting:1.11.3",
+        "org.junit.platform:junit-platform-launcher:1.11.3",
+        "org.junit.jupiter:junit-jupiter-engine:5.11.3",
+        "org.junit.jupiter:junit-jupiter-api:5.11.3",
+        "org.assertj:assertj-core:3.26.3",
+        "org.slf4j:slf4j-simple:2.0.16",
     ],
+    known_contributing_modules = [
+        "noel",
+        "protobuf",
+    ],
+    lock_file = "//:mvn_install.json",
     repositories = [
         "https://repo1.maven.org/maven2/",
     ],
-    lock_file = "//:mvn_install.json"
 )
-
 use_repo(maven, "maven", "unpinned_maven")

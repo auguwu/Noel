@@ -25,7 +25,7 @@
         </encoder>
     </appender>
 
-    <root level="${noel.log.level:-INFO}">
+    <root level="${noel.log.level:-${NOEL_LOG_LEVEL:-INFO}}">
         <appender-ref ref="Console" />
     </root>
 </configuration>

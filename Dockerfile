@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(@auguwu/Noel): switch to cr.noel.pink/bazelbuild/bazel:8.5.1-alpine once available
+# TODO(@auguwu/Noel): switch to cr.noel.pink/bazelbuild/bazel:$BAZEL_VERSION-alpine once available
 FROM frolvlad/alpine-glibc:alpine-3.22_glibc-2.42 AS bazelbuild
 
-ARG BAZEL_VERSION=8.5.1
+ARG BAZEL_VERSION=9.3.1
 
 RUN apk upgrade && apk add --no-cache build-base python3 bash unzip zip curl linux-headers
 
