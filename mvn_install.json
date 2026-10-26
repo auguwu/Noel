@@ -6,7 +6,7 @@
     "com.fasterxml.jackson.core:jackson-annotations": 1010237291,
     "com.google.code.findbugs:jsr305": 495355163,
     "com.google.code.gson:gson": 597770368,
-    "com.google.errorprone:error_prone_annotations": -1550554439,
+    "com.google.errorprone:error_prone_annotations": 911823543,
     "com.google.guava:guava": 1943808618,
     "com.google.inject:guice": -1954192127,
     "com.google.j2objc:j2objc-annotations": 2003271689,
@@ -123,7 +123,6 @@
   "conflict_resolution": {
     "com.fasterxml.jackson.core:jackson-annotations:2.20": "com.fasterxml.jackson.core:jackson-annotations:2.22",
     "com.google.code.gson:gson:2.8.9": "com.google.code.gson:gson:2.10.1",
-    "com.google.errorprone:error_prone_annotations:2.36.0": "com.google.errorprone:error_prone_annotations:2.50.0",
     "com.google.guava:guava:32.0.1-jre": "com.google.guava:guava:33.7.1-jre",
     "com.google.j2objc:j2objc-annotations:2.8": "com.google.j2objc:j2objc-annotations:3.1",
     "org.jspecify:jspecify:1.0.0": "org.jspecify:jspecify:1.0.1"

@@ -21,5 +21,5 @@ set -o nounset
 set -o pipefail
 
 echo NOEL_BUILD_TIMESTAMP "$(date -Iseconds --utc)"
-echo STABLE_NOEL_GIT_COMMIT $(git rev-parse --short=8 HEAD)
+echo STABLE_NOEL_GIT_COMMIT "$(git rev-parse HEAD 2>/dev/null || echo '')"
 echo STABLE_NOEL_VERSION "$(cat .noel-version)"

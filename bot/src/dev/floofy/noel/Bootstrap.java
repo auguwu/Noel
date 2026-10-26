@@ -32,9 +32,8 @@ public final class Bootstrap {
         Runtime.getRuntime().addShutdownHook(new Thread(noel::shutdown, "Noel-ShutdownThread"));
 
         LOG.info(
-                "Bootstrap Noel v{}+{} (built at {})",
-                BuildInfo.getVersion(),
-                BuildInfo.getGitCommit(),
+                "Bootstrap Noel v{} (built at {})",
+                BuildInfo.getVersionString(),
                 new SimpleDateFormat("MMMM dd, yyyy @ hh:mm:ss z")
                         .format(Date.from(Instant.parse(BuildInfo.getBuildTimestamp()))));
 

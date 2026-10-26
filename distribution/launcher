@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+# +--------------------------------------------------------------+
+# 🐾✨ Noel: Discord bot made to manage my servers made in Java
+# Copyright 2021-2026 Noel Towa <cutie@floofy.dev>, et al.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# +--------------------------------------------------------------+
+
+set -euo pipefail
+
+case "${NOEL_DEBUG:-0}" in
+    0 | no | false | NO | FALSE | "") NOEL_DEBUG=0 ;;
+    *)                                NOEL_DEBUG=1 ;;
+esac
+
+fatal() {
+  printf '[noel][fatal] %s\n' "$*" >&2
+  exit 1
+}
+
+debug() {
+    if ((NOEL_DEBUG)); then
+        printf '[noel][debug] %s\n' "$*" >&2
+    fi
+}
+
+src=${BASH_SOURCE[0]}
+[[ $src == */* ]] || src=./$src
+while [[ -L $src ]]; do
+    target=$(readlink -- "$src")
+    case $target in
+        /*) src=$target ;;
+        *) src=${src%/*}/$target ;;
+    esac
+
+    debug "followed symlink -> $src"
+done
+
+APP_HOME="$(cd -P -- "${src%/*}/.." && pwd)"
+debug "\$APP_HOME ~> $APP_HOME"
+
+
+# --- locate java ---
+if [[ -n ${JAVA_HOME:-} ]]; then
+    JAVA_EXEC=$JAVA_HOME/bin/java
+    [[ -x $JAVA_EXEC ]] || fatal "JAVA_HOME is set to an invalid directory: $JAVA_HOME (no executable bin/java)"
+else
+    JAVA_EXEC=$(command -v java) || fatal "JAVA_HOME is not set and no 'java' was found in \$PATH; set JAVA_HOME to a Java installation"
+fi
+
+debug "\$JAVA_EXEC ~> $JAVA_EXEC"
+
+java_major() {
+    local ver="" key val out
+
+    if [[ -n ${JAVA_HOME:-} && -r $JAVA_HOME/release ]]; then
+        while IFS='=' read -r key val; do
+            if [[ $key == JAVA_VERSION ]]; then
+                ver=${val//\"/}
+                break
+            fi
+        done <"$JAVA_HOME/release"
+    fi
+
+    if [[ -z $ver ]]; then
+        out=$("$JAVA_EXEC" -version 2>&1) || true
+        [[ $out =~ version\ \"([0-9._]+) ]] && ver=${BASH_REMATCH[1]}
+    fi
+
+    ver=${ver#1.} # legacy "1.8.0_x" -> "8.0_x"
+    printf '%s' "${ver%%[._]*}"
+}
+
+JAVA_VERSION=$(java_major)
+debug "detected Java major version '$JAVA_VERSION'"
+
+[[ $JAVA_VERSION =~ ^[0-9]+$ ]] || fatal "unable to determine Java version from $JAVA_EXEC"
+((JAVA_VERSION >= 25)) || fatal "Noel requires Java 25 or higher, found: $JAVA_VERSION"
+
+## --- JVM options (kept as an array so nothing gets re-split or globbed) ---
+java_opts=(
+    -XX:+HeapDumpOnOutOfMemoryError
+    -XX:+ExitOnOutOfMemoryError
+    "-XX:ErrorFile=$APP_HOME/logs/hs_err_pid%p.log"
+    -XX:+UseG1GC
+    -Dfile.encoding=UTF-8
+    -Djava.awt.headless=true
+
+    # netty: allow direct buffer / Unsafe optimizations
+    # https://github.com/netty/netty/issues/7817
+    -Dio.netty.tryReflectionSetAccessible=true
+    --add-opens=java.base/jdk.internal.misc=ALL-UNNAMED
+    --add-opens=java.base/java.nio=ALL-UNNAMED
+)
+
+if [[ -n ${NOEL_JAVA_OPTS:-} ]]; then
+    read -r -a extra_opts <<<"$NOEL_JAVA_OPTS"
+    java_opts+=(${extra_opts[@]+"${extra_opts[@]}"}) # appended last, so they override defaults
+    debug "extra options: $NOEL_JAVA_OPTS"
+fi
+
+debug "exec: $JAVA_EXEC ${java_opts[*]} -jar \"$APP_HOME/lib/Noel.jar\" $*"
+exec "$JAVA_EXEC" "${java_opts[@]}" \
+    -jar "$APP_HOME/lib/Noel.jar" \
+    "$@"

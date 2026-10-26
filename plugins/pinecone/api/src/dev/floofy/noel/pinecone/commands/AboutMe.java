@@ -49,9 +49,8 @@ public final class AboutMe extends AbstractSlashCommand {
                         .addField(
                                 "Bot Information",
                                 String.format(
-                                        "<a:noel:843673536392724500> **%s+%s** | JDA: **%s** | Java: **%s** [%s]",
-                                        BuildInfo.getVersion(),
-                                        BuildInfo.getGitCommit(),
+                                        "<a:noel:843673536392724500> **v%s** | JDA: **%s** | Java: **%s** [%s]",
+                                        BuildInfo.getVersionString(),
                                         JDAInfo.VERSION,
                                         System.getProperty("java.version"),
                                         System.getProperty("java.vendor")),

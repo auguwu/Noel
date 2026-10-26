@@ -41,13 +41,13 @@ public final class BuildInfo {
     /// Returns the version Noel was built as.
     /// @throws RuntimeException if the build data has no version
     public static String getVersion() {
-        return getProperty(VERSION_KEY);
+        return getProperty(VERSION_KEY).intern();
     }
 
     /// Returns the Git commit Noel was built from.
     /// @throws RuntimeException if the build data has no commit
     public static String getGitCommit() {
-        return getProperty(GIT_COMMIT_KEY);
+        return getProperty(GIT_COMMIT_KEY).intern();
     }
 
     /// Returns when this binary was built.
@@ -55,7 +55,7 @@ public final class BuildInfo {
     ///         `NOEL_BUILD_TIMESTAMP`; parse it with [java.time.Instant#parse(CharSequence)]
     /// @throws RuntimeException if the build data has no timestamp
     public static String getBuildTimestamp() {
-        return getProperty(BUILD_TIMESTAMP_KEY);
+        return getProperty(BUILD_TIMESTAMP_KEY).intern();
     }
 
     /// Returns when this class was first used, as a stand-in for when Noel
@@ -65,6 +65,17 @@ public final class BuildInfo {
     /// @return milliseconds since the Unix epoch, as from [System#currentTimeMillis()]
     public static long getStartedAt() {
         return bootstrappedAt;
+    }
+
+    public static String getVersionString() {
+        final var version = getVersion();
+        final var gitCommit = getGitCommit();
+
+        if (gitCommit.isBlank()) {
+            return version;
+        }
+
+        return String.format("%s+%s", version, gitCommit).intern();
     }
 
     private static String getProperty(String key) {
