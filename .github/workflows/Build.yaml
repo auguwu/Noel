@@ -36,6 +36,7 @@ on:
       - '**.md'
       - .bazelrc
       - '.*.bazelrc'
+      - renovate.jsonc
   pull_request:
     types: [opened, synchronize]
     branches:
