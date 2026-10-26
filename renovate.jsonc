@@ -1,0 +1,8 @@
+// This is the Renovate configuration for Noel.
+// Visit https://github.com/Noelware/.github/blob/master/default.json for the Renovate configuration.
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "github>Noelware/.github:default.jsonc"
+  ]
+}
