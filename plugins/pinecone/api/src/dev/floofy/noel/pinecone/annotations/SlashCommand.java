@@ -15,11 +15,13 @@
 
 package dev.floofy.noel.pinecone.annotations;
 
+import dev.floofy.noel.pinecone.api.AbstractSlashCommand;
 import java.lang.annotation.*;
+import net.dv8tion.jda.api.Permission;
 
 /// Declares a class as a slash command.
 ///
-/// The class must be a concrete subclass of [AbstractSlashCommand][dev.floofy.noel.pinecone.AbstractSlashCommand] in a
+/// The class must be a concrete subclass of [AbstractSlashCommand][AbstractSlashCommand] in a
 /// plugin's package (or a subpackage), and the plugin must list `PineconePlugin` in its `dependsOn`. Pinecone then
 /// finds it
 /// when the plugin enables, constructs it with the plugin's injector, and registers it with Discord. No other
@@ -85,4 +87,6 @@ public @interface SlashCommand {
     /// Guild commands appear immediately; global ones can take a while to show up
     /// in every client.
     long[] onlyInGuilds() default {};
+
+    Permission[] defaultPermissions() default {};
 }

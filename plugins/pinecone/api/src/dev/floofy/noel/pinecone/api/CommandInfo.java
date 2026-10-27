@@ -13,9 +13,10 @@
 /// See the License for the specific language governing permissions and
 /// limitations under the License.
 
-package dev.floofy.noel.pinecone;
+package dev.floofy.noel.pinecone.api;
 
 import java.util.*;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 
 /// Read-only information about a registered slash command.
@@ -31,7 +32,13 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 /// @param options     the command's own options; empty if it has subcommands
 /// @param subcommands its subcommands, by name, sorted
 /// @param groups      its subcommand groups, by name, sorted
-/// @param guilds      the guilds it is registered in; empty if it is global
+/// @param global      whether it is registered globally
+/// @param guilds      the guilds it is registered in, if it isn't global. Empty
+///                    for a non-global command means it is registered nowhere,
+///                    because its guild scope returned no guilds
+/// @param permissions the Discord permissions a member needs to see and use it;
+///                    empty for everyone. Server admins can override these per
+///                    user or role, which this doesn't reflect.
 public record CommandInfo(
         String name,
         String description,
@@ -39,7 +46,9 @@ public record CommandInfo(
         List<OptionInfo> options,
         Map<String, SubcommandInfo> subcommands,
         Map<String, GroupInfo> groups,
-        List<Long> guilds) {
+        List<Long> guilds,
+        boolean global,
+        Set<Permission> permissions) {
     /// An option of a command or subcommand.
     ///
     /// @param name        the option's name
@@ -87,8 +96,9 @@ public record CommandInfo(
     /// Builds the information for a registered command.
     /// @param command  a metadata instance of the command; never executed
     /// @param pluginId the owning plugin's id
-    /// @param guilds   the guilds it is registered in; empty if global
-    public static CommandInfo from(AbstractSlashCommand command, String pluginId, long[] guilds) {
+    /// @param guilds   the guilds it is registered in, if it isn't global
+    /// @param global   whether it is registered globally
+    public static CommandInfo from(AbstractSlashCommand command, String pluginId, long[] guilds, boolean global) {
         Objects.requireNonNull(command, "command");
         Objects.requireNonNull(pluginId, "pluginId");
         Objects.requireNonNull(guilds, "guilds");
@@ -115,7 +125,9 @@ public record CommandInfo(
                 options(command.getOptions()),
                 subcommands,
                 groups,
-                Arrays.stream(guilds).boxed().toList());
+                global ? List.of() : Arrays.stream(guilds).boxed().toList(),
+                global,
+                Set.of(info.defaultPermissions()));
     }
 
     private static SubcommandInfo subcommand(String name, Subcommand sub) {

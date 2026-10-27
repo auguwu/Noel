@@ -18,10 +18,12 @@ package dev.floofy.noel.pinecone.impl;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
-import dev.floofy.noel.pinecone.AbstractSlashCommand;
-import dev.floofy.noel.pinecone.CommandInterceptor;
-import dev.floofy.noel.pinecone.CommandRegistry;
+import dev.floofy.noel.pinecone.annotations.GuildRegistration;
 import dev.floofy.noel.pinecone.annotations.Intercept;
+import dev.floofy.noel.pinecone.api.AbstractSlashCommand;
+import dev.floofy.noel.pinecone.api.CommandInterceptor;
+import dev.floofy.noel.pinecone.api.CommandRegistry;
+import dev.floofy.noel.pinecone.api.GuildScope;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -37,8 +39,13 @@ public final class CommandRegistryImpl implements CommandRegistry {
         }
 
         var interceptorTypes = new LinkedHashSet<Class<? extends CommandInterceptor>>();
+        var scopeTypes = new LinkedHashSet<Class<? extends GuildScope>>();
         for (var type : found.commands()) {
             interceptorTypes.addAll(interceptorTypesOf(type));
+            var scope = scopeTypeOf(type);
+            if (scope != null) {
+                scopeTypes.add(scope);
+            }
         }
 
         var injector = parent.createChildInjector(binder -> {
@@ -46,6 +53,7 @@ public final class CommandRegistryImpl implements CommandRegistry {
             found.commands().forEach(binder::bind);
             found.groups().forEach(binder::bind);
             interceptorTypes.forEach(binder::bind);
+            scopeTypes.forEach(binder::bind);
         });
 
         var added = new HashMap<String, Registered>();
@@ -61,7 +69,7 @@ public final class CommandRegistryImpl implements CommandRegistry {
                 CommandValidator.validate(prototype);
             } catch (RuntimeException ex) {
                 throw new IllegalStateException(
-                        "invalid slash command %s in plugin [%s]: %s"
+                        "invalid slash command [%s] in plugin [%s]: %s"
                                 .formatted(type.getName(), pluginId, ex.getMessage()),
                         ex);
             }
@@ -80,7 +88,15 @@ public final class CommandRegistryImpl implements CommandRegistry {
                     .<CommandInterceptor>map(injector::getInstance)
                     .toList();
 
-            added.put(info.name(), new Registered(pluginId, info, prototype, provider, interceptors));
+            var scopeType = scopeTypeOf(type);
+            if (scopeType != null && info.onlyInGuilds().length > 0) {
+                throw new IllegalStateException(
+                        "slash command [/%s] in plugin [%s] has both @GuildRegistraqtion and onlyInGuilds; pick one"
+                                .formatted(info.name(), pluginId));
+            }
+
+            GuildScope scope = scopeType == null ? null : injector.getInstance(scopeType);
+            added.put(info.name(), new Registered(pluginId, info, prototype, provider, interceptors, scope));
         }
 
         byName.putAll(added);
@@ -90,6 +106,11 @@ public final class CommandRegistryImpl implements CommandRegistry {
     private static List<Class<? extends CommandInterceptor>> interceptorTypesOf(Class<?> command) {
         var annotation = command.getAnnotation(Intercept.class);
         return annotation == null ? List.of() : List.of(annotation.value());
+    }
+
+    private static Class<? extends GuildScope> scopeTypeOf(Class<?> command) {
+        var annotation = command.getAnnotation(GuildRegistration.class);
+        return annotation == null ? null : annotation.value();
     }
 
     @Override

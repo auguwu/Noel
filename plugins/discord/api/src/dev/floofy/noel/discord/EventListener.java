@@ -24,6 +24,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,12 +46,13 @@ import org.slf4j.LoggerFactory;
 public final class EventListener extends ListenerAdapter implements AutoCloseable {
     private static final Setting<List<PresenceMeta>> PRESENCES =
             Setting.list("plugins.discord.presences", PresenceMeta::setting).orElse(List.of());
-    private static final Duration ROTATE_EVERY = Duration.ofMinutes(5);
+    private static final Duration ROTATE_EVERY = Duration.ofMinutes(2);
     private static final Activity FALLBACK = Activity.competing("for your love! <3");
     private static final Logger LOG = LoggerFactory.getLogger(EventListener.class);
 
     private final AtomicBoolean started = new AtomicBoolean();
     private final AtomicInteger next = new AtomicInteger();
+    private final AtomicInteger last = new AtomicInteger(-1);
 
     private final ScheduledExecutorService scheduler;
     private final Settings settings;
@@ -93,9 +95,6 @@ public final class EventListener extends ListenerAdapter implements AutoCloseabl
     }
 
     /// Shows the next presence, in configured order, wrapping around.
-    ///
-    /// Never throws: an exception escaping a `scheduleWithFixedDelay` task cancels
-    /// every later run, which would silently freeze the presence.
     void rotatePresence() {
         try {
             final var presences = getLastValidPresences();
@@ -104,7 +103,7 @@ public final class EventListener extends ListenerAdapter implements AutoCloseabl
                 return;
             }
 
-            final var meta = presences.get(Math.floorMod(next.getAndIncrement(), presences.size()));
+            final var meta = pick();
             jda.get().getPresence().setPresence(OnlineStatus.ONLINE, meta.toActivity());
         } catch (Throwable ex) {
             LOG.error("failed to rotate presence; trying again in {}", ROTATE_EVERY, ex);
@@ -121,5 +120,30 @@ public final class EventListener extends ListenerAdapter implements AutoCloseabl
             LOG.warn("ignoring invalid presence configuration, keeping the previous list:", ex);
             return this.lastValidPresences;
         }
+    }
+
+    private PresenceMeta pick() {
+        if (this.lastValidPresences.isEmpty()) {
+            return new PresenceMeta("for your love! <3", FALLBACK.getType());
+        }
+
+        final var size = this.lastValidPresences.size();
+        if (size == 1) {
+            return this.lastValidPresences.getFirst();
+        }
+
+        final var previous = last.get();
+        int index;
+        if (previous < 0 || previous >= size) {
+            index = ThreadLocalRandom.current().nextInt(size);
+        } else {
+            index = ThreadLocalRandom.current().nextInt(size - 1);
+            if (index >= previous) {
+                index++;
+            }
+        }
+
+        last.set(index);
+        return lastValidPresences.get(index);
     }
 }

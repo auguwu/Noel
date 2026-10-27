@@ -79,11 +79,13 @@ public final class Settings {
         if (fromEnv != null && !fromEnv.isBlank()) {
             var path = Path.of(fromEnv);
             if (!Files.isRegularFile(path)) {
-                throw new IllegalStateException(String.format("$%s points to [%s], which is not a file", ENV_VAR, path));
+                throw new IllegalStateException(
+                        String.format("$%s points to [%s], which is not a file", ENV_VAR, path));
             }
 
             if (!Files.isReadable(path)) {
-                throw new IllegalStateException(String.format("$%s points to [%s], which is not readable", ENV_VAR, path));
+                throw new IllegalStateException(
+                        String.format("$%s points to [%s], which is not readable", ENV_VAR, path));
             }
 
             return load(path);

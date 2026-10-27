@@ -15,9 +15,9 @@
 
 package dev.floofy.noel.pinecone.impl;
 
-import dev.floofy.noel.pinecone.AbstractSlashCommand;
-import dev.floofy.noel.pinecone.CommandContext;
-import dev.floofy.noel.pinecone.Subcommand;
+import dev.floofy.noel.pinecone.api.AbstractSlashCommand;
+import dev.floofy.noel.pinecone.api.CommandContext;
+import dev.floofy.noel.pinecone.api.Subcommand;
 
 /// Routes one invocation to the right code: a plain command's `execute`, a subcommand, or a subcommand inside a group.
 /// Called by [PineconeImpl] on a command execution thread, after the command interceptors' `before` hooks have passed.

@@ -13,7 +13,7 @@
 /// See the License for the specific language governing permissions and
 /// limitations under the License.
 
-package dev.floofy.noel.pinecone;
+package dev.floofy.noel.pinecone.api;
 
 import com.google.inject.Injector;
 import com.google.inject.Provider;
@@ -43,12 +43,16 @@ public interface CommandRegistry {
     /// @param info      its `@SlashCommand` annotation
     /// @param prototype an instance used only for metadata; never executed
     /// @param provider  creates the instance each invocation runs on
+    /// @param scope     decides which guilds it's registered in, from
+    ///                  [`@GuildRegistration`][dev.floofy.noel.pinecone.annotations.GuildRegistration]; `null` if
+    ///                  it has none
     record Registered(
             String pluginId,
             SlashCommand info,
             AbstractSlashCommand prototype,
             Provider<? extends AbstractSlashCommand> provider,
-            List<? extends CommandInterceptor> interceptors) {}
+            List<? extends CommandInterceptor> interceptors,
+            GuildScope scope) {}
 
     /// Scans `owner`'s package for slash commands and registers them for a plugin.
     ///

@@ -16,7 +16,7 @@
 package dev.floofy.noel.pinecone.impl;
 
 import dev.floofy.noel.Pinecone;
-import dev.floofy.noel.pinecone.CommandContext;
+import dev.floofy.noel.pinecone.api.CommandContext;
 import java.util.Objects;
 import net.dv8tion.jda.api.interactions.commands.SlashCommandInteraction;
 

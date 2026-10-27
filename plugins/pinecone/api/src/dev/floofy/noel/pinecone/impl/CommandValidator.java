@@ -15,9 +15,9 @@
 
 package dev.floofy.noel.pinecone.impl;
 
-import dev.floofy.noel.pinecone.AbstractSlashCommand;
-import dev.floofy.noel.pinecone.Option;
-import dev.floofy.noel.pinecone.Subcommand;
+import dev.floofy.noel.pinecone.api.AbstractSlashCommand;
+import dev.floofy.noel.pinecone.api.Option;
+import dev.floofy.noel.pinecone.api.Subcommand;
 import java.util.*;
 import java.util.regex.Pattern;
 import net.dv8tion.jda.api.interactions.commands.OptionType;

@@ -15,15 +15,13 @@
 
 services:
   mongodb:
-    image: mongo:8.2
-    container_name: noel-mongodb
+    image: mongo:9.0.4
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      - "127.0.0.1:27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: noel
       MONGO_INITDB_ROOT_PASSWORD: noeliscutieuwu
-      MONGO_INITDB_DATABASE: noel
     volumes:
       - mango:/data/db
 volumes:

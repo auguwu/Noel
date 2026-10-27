@@ -29,6 +29,7 @@
     "org.junit.jupiter:junit-jupiter-engine": 766413368,
     "org.junit.platform:junit-platform-launcher": 375891854,
     "org.junit.platform:junit-platform-reporting": 1058066492,
+    "org.mongodb:bson": -1655111197,
     "org.mongodb:mongodb-driver-sync": -1923907548,
     "org.slf4j:slf4j-api": -626942717,
     "org.slf4j:slf4j-simple": 1319506696,

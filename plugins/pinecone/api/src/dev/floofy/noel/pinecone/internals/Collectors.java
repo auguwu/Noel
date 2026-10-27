@@ -15,8 +15,8 @@
 
 package dev.floofy.noel.pinecone.internals;
 
-import dev.floofy.noel.pinecone.*;
 import dev.floofy.noel.pinecone.annotations.Autocomplete;
+import dev.floofy.noel.pinecone.api.*;
 import dev.floofy.noel.pinecone.internals.java.Function3;
 import dev.floofy.noel.pinecone.internals.options.ParameterTarget;
 import java.lang.reflect.Method;

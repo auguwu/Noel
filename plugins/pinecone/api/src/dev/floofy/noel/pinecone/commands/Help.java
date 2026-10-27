@@ -16,10 +16,10 @@
 package dev.floofy.noel.pinecone.commands;
 
 import dev.floofy.Noel;
-import dev.floofy.noel.pinecone.*;
 import dev.floofy.noel.pinecone.annotations.Autocomplete;
 import dev.floofy.noel.pinecone.annotations.Option;
 import dev.floofy.noel.pinecone.annotations.SlashCommand;
+import dev.floofy.noel.pinecone.api.*;
 import java.util.*;
 import net.dv8tion.jda.api.components.container.Container;
 import net.dv8tion.jda.api.components.container.ContainerChildComponent;
@@ -53,6 +53,11 @@ public final class Help extends AbstractSlashCommand {
         }
 
         final var guild = cx.getGuild();
+        Long guildId = null;
+        if (guild != null) {
+            guildId = guild.getIdLong();
+        }
+
         final var name = command.get().strip().replaceFirst("^/", "").toLowerCase(Locale.ROOT);
         final var cmd = cx.getPinecone().getSlashCommands().stream()
                 .filter(c -> c.name().equals(name))
@@ -68,8 +73,12 @@ public final class Help extends AbstractSlashCommand {
         }
 
         final var theCommand = cmd.get();
+        final var mention = cx.getPinecone()
+                .mentionSlashCommand(theCommand.name(), guildId)
+                .map(s -> String.format(" [%s]", s))
+                .orElse("");
         final var children = new ArrayList<ContainerChildComponent>();
-        children.add(TextDisplay.ofFormat("## Slash Command [`/%s`]", theCommand.name()));
+        children.add(TextDisplay.ofFormat("## Slash Command%s", mention));
         children.add(TextDisplay.ofFormat("*%s*", theCommand.description()));
 
         if (!theCommand.subcommands().isEmpty() || !theCommand.groups().isEmpty()) {

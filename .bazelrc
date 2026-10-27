@@ -18,8 +18,12 @@ build:opt --compilation_mode=opt
 
 build --workspace_status_command=./hack/stamp.sh
 
+common --java_runtime_version=local_jdk
+common --tool_java_runtime_version=local_jdk
+
 common --java_language_version=25
 common --tool_java_language_version=25
+
 common --repo_env=DO_NOT_TRACK=1
 
 try-import %workspace%/.usr.bazelrc

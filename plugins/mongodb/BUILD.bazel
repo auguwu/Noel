@@ -12,3 +12,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+load("@rules_jvm_external//:defs.bzl", "artifact")
+load("//bazel/noel:plugin.bzl", "noel_plugin")
+
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+noel_plugin(
+    name = "mongodb",
+    srcs = ["src/dev/floofy/noel/MongoDBPlugin.java"],
+    deps = [
+        "//settings",
+        artifact("org.mongodb:mongodb-driver-sync"),
+        artifact("org.mongodb:mongodb-driver-core"),
+        artifact("com.google.inject:guice"),
+        artifact("org.slf4j:slf4j-api"),
+        artifact("org.mongodb:bson"),
+    ],
+)

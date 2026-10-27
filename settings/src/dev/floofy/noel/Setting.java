@@ -282,6 +282,15 @@ public final class Setting<T> {
                 }));
     }
 
+    public static Setting<Long> snowflake(String path) {
+        return Setting.of(path, Object.class).transform(raw -> switch (raw) {
+            case Long id -> id;
+            case Integer id -> id.longValue();
+            case String id -> Long.parseUnsignedLong(id);
+            default -> throw new IllegalArgumentException(String.format("expected a Snowflake, got: %s", raw));
+        });
+    }
+
     /// Reads this setting from `root`.
     ///
     /// @param root the configuration map

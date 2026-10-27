@@ -13,7 +13,7 @@
 /// See the License for the specific language governing permissions and
 /// limitations under the License.
 ///
-package dev.floofy.noel.pinecone;
+package dev.floofy.noel.pinecone.api;
 
 import dev.floofy.noel.pinecone.internals.options.FieldTarget;
 import dev.floofy.noel.pinecone.internals.options.ParameterTarget;
@@ -22,6 +22,7 @@ import dev.floofy.noel.pinecone.internals.options.Target;
 import java.util.Objects;
 import java.util.Optional;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.channel.unions.GuildChannelUnion;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +68,8 @@ public final class Option {
             return OptionMapping::getAsAttachment;
         } else if (type == Role.class) {
             return OptionMapping::getAsRole;
+        } else if (type == GuildChannelUnion.class) {
+            return OptionMapping::getAsChannel;
         }
 
         throw new IllegalStateException(String.format("unable to map mapping to class `%s'", type.getName()));

@@ -16,6 +16,7 @@
 package dev.floofy.noel.pinecone.annotations;
 
 import java.lang.annotation.*;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 
 /// Declares a slash command option, and where its value goes.
@@ -53,6 +54,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 /// | `ROLE`        | `Role`                                        |
 /// | `MENTIONABLE` | `IMentionable`                                |
 /// | `ATTACHMENT`  | `Message.Attachment`                          |
+/// | `CHANNEL`     | `GuildChannelUnion`                           |
 ///
 /// Any of these can be wrapped in `Optional`. `CHANNEL` options aren't supported
 /// yet. An unsupported Java type fails when the plugin registers.
@@ -87,4 +89,14 @@ public @interface Option {
     /// Discord requires every required option to come before every optional one,
     /// so declare required fields or parameters first.
     boolean required() default false;
+
+    /// For a `CHANNEL` option, the kinds of channel Discord lets the user pick,
+    /// such as `TEXT` and `NEWS` for a channel to post in. Empty allows every
+    /// kind. Ignored for other option types.
+    ///
+    /// Discord only enforces this in its picker, so check the channel you get
+    /// anyway.
+    ///
+    /// @return the allowed channel types
+    ChannelType[] channelTypes() default {};
 }

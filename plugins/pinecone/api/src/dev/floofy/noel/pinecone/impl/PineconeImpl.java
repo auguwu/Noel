@@ -19,8 +19,8 @@ import com.google.inject.Inject;
 import dev.floofy.noel.Pinecone;
 import dev.floofy.noel.Setting;
 import dev.floofy.noel.Settings;
-import dev.floofy.noel.pinecone.*;
 import dev.floofy.noel.pinecone.annotations.SlashCommand;
+import dev.floofy.noel.pinecone.api.*;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
@@ -34,7 +34,9 @@ import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInterac
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.commands.Command;
+import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.*;
 import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
 import org.jspecify.annotations.NonNull;
@@ -63,8 +65,24 @@ import org.slf4j.LoggerFactory;
 /// slow command never blocks JDA's event thread. Each slash command invocation
 /// runs through the [CommandInterceptor] chain, then the [Dispatcher].
 public final class PineconeImpl extends ListenerAdapter implements Pinecone, AutoCloseable {
+    /// Where a command is registered.
+    ///
+    /// @param global whether it's a global command
+    /// @param guilds the guilds it's registered in, if it isn't global. Empty
+    ///               for a non-global command means nowhere, which only a
+    ///               [GuildScope] can produce.
+    record Placement(boolean global, long[] guilds) {
+        static final Placement GLOBAL = new Placement(true, new long[0]);
+        static final Placement NOWHERE = new Placement(false, new long[0]);
+
+        static Placement in(long[] guilds) {
+            return guilds.length == 0 ? NOWHERE : new Placement(false, guilds);
+        }
+    }
+
     private static final String FAIL_MESSAGE =
             ":pensive: **|> command failed to execute. this was reported to the owners!**";
+
     private static final Logger LOG = LoggerFactory.getLogger(PineconeImpl.class);
 
     private final List<CommandInterceptor> interceptors = new CopyOnWriteArrayList<>();
@@ -83,11 +101,17 @@ public final class PineconeImpl extends ListenerAdapter implements Pinecone, Aut
         }
     });
 
+    /// Discord's IDs for guild-only commands, by guild, then by name. Each guild
+    /// has its own ID for the same command.
+    private final Map<Long, Map<String, Long>> guildIds = new ConcurrentHashMap<>();
     private final CommandRegistry registry;
     private final Settings settings;
     private final JDA jda;
 
-    private volatile Map<String, long[]> resolvedGuilds = Map.of();
+    private volatile Map<String, Placement> resolvedPlacements = Map.of();
+
+    /// Discord's IDs for the global commands, by name, as of the last sync.
+    private volatile Map<String, Long> globalIds = Map.of();
 
     @Inject
     PineconeImpl(CommandRegistry registry, Settings settings, JDA jda) {
@@ -95,23 +119,14 @@ public final class PineconeImpl extends ListenerAdapter implements Pinecone, Aut
         this.settings = settings;
         this.jda = jda;
     }
-
-    private static Setting<Long> guildId(String path) {
-        return Setting.of(path, Object.class).transform(raw -> switch (raw) {
-            case Long id -> id;
-            case Integer id -> id.longValue();
-            case String id -> Long.parseUnsignedLong(id.strip());
-            default -> throw new IllegalArgumentException(String.format("expected a guild ID, got: %s", raw));
-        });
-    }
-
-    /// Returns the guilds a command is restricted to, or an empty array if it is
-    /// global.
+    /// Works out where a command is registered. The first of these that applies
+    /// wins:
     ///
-    /// `commands.<name>.onlyInGuilds` in the configuration takes precedence over
-    /// [SlashCommand#onlyInGuilds()], so a command can be moved between global and
-    /// guild-only without a rebuild. An empty list in the configuration makes a
-    /// command global even if its annotation restricts it.
+    /// 1. `commands.<name>.onlyInGuilds` in the configuration, so any command can
+    ///    be moved without a rebuild. An empty list makes it global.
+    /// 2. Its [GuildScope], from `@GuildScoped`, asked now. An empty set means
+    ///    nowhere.
+    /// 3. [SlashCommand#onlyInGuilds()]. An empty array means global.
     ///
     /// ```yaml
     /// commands:
@@ -120,11 +135,30 @@ public final class PineconeImpl extends ListenerAdapter implements Pinecone, Aut
     /// ```
     ///
     /// @throws dev.floofy.noel.SettingException if the configured value is not a list of guild IDs
-    long[] guildsFor(SlashCommand info) {
-        final var setting = Setting.list("commands['%s'].onlyInGuilds".formatted(info.name()), PineconeImpl::guildId);
-        return settings.get(setting)
-                .map(ids -> ids.stream().mapToLong(Long::longValue).toArray())
-                .orElseGet(info::onlyInGuilds);
+    Placement placementFor(CommandRegistry.Registered registered) {
+        final var info = registered.info();
+        final var setting =
+                Setting.list(String.format("commands['%s'].onlyInGuilds".formatted(info.name())), Setting::snowflake);
+
+        final var configured = settings.get(setting);
+        if (configured.isPresent()) {
+            final long[] guilds =
+                    configured.get().stream().mapToLong(Long::longValue).toArray();
+            return guilds.length == 0 ? Placement.GLOBAL : Placement.in(guilds);
+        }
+
+        final var scope = registered.scope();
+        if (scope != null) {
+            try {
+                return Placement.in(
+                        scope.guilds().stream().mapToLong(Long::longValue).toArray());
+            } catch (RuntimeException ex) {
+                LOG.error("guild scope of /{} failed; registering it nowhere until the next sync", info.name(), ex);
+                return Placement.NOWHERE;
+            }
+        }
+
+        return info.onlyInGuilds().length == 0 ? Placement.GLOBAL : Placement.in(info.onlyInGuilds());
     }
 
     @Override
@@ -178,33 +212,39 @@ public final class PineconeImpl extends ListenerAdapter implements Pinecone, Aut
     }
 
     private CompletableFuture<Void> doSync() {
-        final var slashCommands = registry.all().stream()
-                .map(CommandRegistry.Registered::prototype)
-                .toList();
-        LOG.info("preparing to register {} slash commands", slashCommands.size());
+        final var registered = registry.all();
+        LOG.info("Preparing to register {} slash commands", registered.size());
 
-        var globalCommands = jda.updateCommands();
-        final var guildOnlySlashCommands = new HashMap<Long, CommandListUpdateAction>();
-
-        final HashMap<String, long[]> guildsByCommand = new HashMap<>();
-        for (var command : slashCommands) {
-            guildsByCommand.put(command.getInfo().name(), guildsFor(command.getInfo()));
+        CommandListUpdateAction globalCommands = jda.updateCommands();
+        final HashMap<Long, CommandListUpdateAction> guildOnlySlashCommands = new HashMap<>();
+        final HashMap<String, Placement> placements = new HashMap<>();
+        for (var entry : registered) {
+            placements.put(entry.info().name(), placementFor(entry));
         }
 
-        // Every command resolved, so the configuration is valid: publish it for `getSlashCommands()' before anything is
-        // sent.
-        resolvedGuilds = Map.copyOf(guildsByCommand);
-
-        for (var command : slashCommands) {
+        this.resolvedPlacements = Map.copyOf(placements);
+        for (var ent : registered) {
+            final var command = ent.prototype();
             final var info = command.getInfo();
-            final var guilds = guildsByCommand.get(info.name());
-            final var data = Commands.slash(info.name(), info.description());
+            final var placement = placements.get(info.name());
+            if (!placement.global() && placement.guilds().length == 0) {
+                LOG.warn("Not registering /{}: its scope has no guilds", info.name());
+                continue;
+            }
+
+            final var guilds = placement.guilds();
+            SlashCommandData data = Commands.slash(info.name(), info.description());
+
+            if (info.defaultPermissions().length > 0) {
+                data = data.setDefaultPermissions(DefaultMemberPermissions.enabledFor(info.defaultPermissions()))
+                        .setContexts(InteractionContextType.GUILD);
+            }
 
             final var autocompleted = command.getAutocompleters().keySet();
             attachSubcommands(command, data, autocompleted);
             data.addOptions(optionData(command.getOptions(), autocompleted));
 
-            if (guilds.length == 0) {
+            if (placement.global()) {
                 LOG.info("Registering global slash command /{}", info.name());
                 globalCommands = globalCommands.addCommands(data);
             } else {
@@ -222,9 +262,8 @@ public final class PineconeImpl extends ListenerAdapter implements Pinecone, Aut
                         continue;
                     }
 
-                    final var update = guildOnlySlashCommands
-                            .computeIfAbsent(guild.getIdLong(), ignored -> guild.updateCommands())
-                            .addCommands(data);
+                    final var update = guildOnlySlashCommands.computeIfAbsent(
+                            guild.getIdLong(), ignored -> guild.updateCommands());
 
                     guildOnlySlashCommands.put(guild.getIdLong(), update.addCommands(data));
                 }
@@ -279,18 +318,34 @@ public final class PineconeImpl extends ListenerAdapter implements Pinecone, Aut
                 event.getUser().getName(),
                 event.getUser().getId());
 
-        final var command = registry.find(event.getName());
-        if (command.isEmpty()) {
-            event.replyFormat(":question: **|> unknown slash command: /%s**", event.getName())
+        if (!pluginsReady.get()) {
+            event.reply(":hourglass: **|> Bot is still starting up; try again in a moment!**")
                     .setEphemeral(true)
                     .queue();
             return;
         }
 
+        final var command = registry.find(event.getName());
+        if (command.isEmpty()) {
+            event.replyFormat(":question: **|> unknown slash command: /%s**", event.getName())
+                    .setEphemeral(true)
+                    .queue();
+
+            return;
+        }
+
         final var registered = command.get();
         final var info = infoOf(registered);
-        final var context = new CommandContextImpl(event.getInteraction(), this);
+        final var guild = event.getGuild();
+        if (guild == null ? !info.isGlobal() : !info.isAvailableIn(guild.getIdLong())) {
+            event.reply(":no_entry: **|> `/%s` isn't available here**".formatted(info.name()))
+                    .setEphemeral(true)
+                    .queue();
 
+            return;
+        }
+
+        final var context = new CommandContextImpl(event.getInteraction(), this);
         try {
             executor.execute(() -> invoke(registered, info, context));
         } catch (RejectedExecutionException ex) {
@@ -374,12 +429,36 @@ public final class PineconeImpl extends ListenerAdapter implements Pinecone, Aut
         return () -> interceptors.remove(interceptor);
     }
 
+    @Override
+    public Optional<String> mentionSlashCommand(String path, Long guild) {
+        final var parts = path.strip().split("\\s+");
+        if (parts.length == 0 || parts.length > 3 || parts[0].isEmpty()) {
+            throw new IllegalArgumentException(
+                    "expected `command`, `command subcommand` or `command group subcommand`, got `%s`".formatted(path));
+        }
+
+        Long id = null;
+        if (guild != null) {
+            id = guildIds.getOrDefault(guild, Map.of()).get(parts[0]);
+        }
+
+        if (id == null) {
+            id = globalIds.get(parts[0]);
+        }
+
+        return id == null ? Optional.empty() : Optional.of("</%s:%d>".formatted(String.join(" ", parts), id));
+    }
+
     private CommandInfo infoOf(CommandRegistry.Registered registered) {
-        final long[] guilds = resolvedGuilds.get(registered.info().name());
-        return CommandInfo.from(
-                registered.prototype(),
-                registered.pluginId(),
-                guilds != null ? guilds : registered.info().onlyInGuilds());
+        var placement = resolvedPlacements.get(registered.info().name());
+        if (placement == null) {
+            final long[] annotated = registered.info().onlyInGuilds();
+            placement = registered.scope() != null
+                    ? Placement.NOWHERE
+                    : annotated.length == 0 ? Placement.GLOBAL : Placement.in(annotated);
+        }
+
+        return CommandInfo.from(registered.prototype(), registered.pluginId(), placement.guilds(), placement.global());
     }
 
     @Override

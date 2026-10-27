@@ -16,7 +16,7 @@
 package dev.floofy.noel;
 
 import com.google.inject.Singleton;
-import dev.floofy.noel.pinecone.CommandRegistry;
+import dev.floofy.noel.pinecone.api.CommandRegistry;
 import dev.floofy.noel.pinecone.commands.Help;
 import dev.floofy.noel.pinecone.impl.CommandRegistryImpl;
 import dev.floofy.noel.pinecone.impl.PineconeImpl;

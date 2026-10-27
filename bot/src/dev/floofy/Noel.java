@@ -21,6 +21,7 @@ import dev.floofy.noel.Settings;
 import dev.floofy.noel.plugins.PluginManager;
 import java.awt.*;
 import java.io.IOError;
+import java.time.Clock;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.*;
@@ -89,6 +90,7 @@ public final class Noel {
             binder.bind(ScheduledExecutorService.class).toInstance(scheduler);
             binder.bind(ExecutorService.class).toInstance(executor);
             binder.bind(Settings.class).toInstance(settings);
+            binder.bind(Clock.class).toInstance(Clock.systemUTC());
             binder.bind(Noel.class).toInstance(this);
 
             binder.bind(PluginManager.class);

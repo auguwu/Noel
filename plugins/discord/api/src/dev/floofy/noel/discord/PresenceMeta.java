@@ -50,7 +50,7 @@ public final class PresenceMeta {
     private final String message;
     private final Activity.ActivityType type;
 
-    private PresenceMeta(String message, Activity.ActivityType type) {
+    PresenceMeta(String message, Activity.ActivityType type) {
         this.message = Objects.requireNonNull(message, "message");
         this.type = Objects.requireNonNull(type, "type");
     }

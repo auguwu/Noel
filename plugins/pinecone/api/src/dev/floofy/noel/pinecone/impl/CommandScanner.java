@@ -15,9 +15,9 @@
 
 package dev.floofy.noel.pinecone.impl;
 
-import dev.floofy.noel.pinecone.AbstractSlashCommand;
 import dev.floofy.noel.pinecone.annotations.SlashCommand;
 import dev.floofy.noel.pinecone.annotations.SubcommandGroup;
+import dev.floofy.noel.pinecone.api.AbstractSlashCommand;
 import io.github.classgraph.ClassGraph;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;

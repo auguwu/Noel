@@ -17,10 +17,10 @@ package dev.floofy.noel.pinecone.commands;
 
 import com.google.inject.Inject;
 import dev.floofy.Noel;
-import dev.floofy.noel.pinecone.AbstractSlashCommand;
-import dev.floofy.noel.pinecone.AutocompleteContext;
-import dev.floofy.noel.pinecone.CommandContext;
 import dev.floofy.noel.pinecone.annotations.*;
+import dev.floofy.noel.pinecone.api.AbstractSlashCommand;
+import dev.floofy.noel.pinecone.api.AutocompleteContext;
+import dev.floofy.noel.pinecone.api.CommandContext;
 import dev.floofy.noel.pinecone.interceptors.AdminOnly;
 import dev.floofy.noel.plugins.Descriptor;
 import dev.floofy.noel.plugins.PluginException;
@@ -100,30 +100,30 @@ public final class Plugins extends AbstractSlashCommand {
     }
 
     void deferReply(CommandContext cx, Supplier<String> action) {
-        // Each action can take more than 3 seconds if it needs to and we also need
+        // Each action can take more than 3 seconds if it needs to, and we also need
         // to re-sync slash commands as well.
         cx.deferReply(true).queue();
 
+        final var hook = cx.getInteraction().getHook();
         final String message;
         try {
             message = action.get();
         } catch (PluginException ex) {
-            cx.getInteraction()
-                    .getHook()
-                    .sendMessageFormat(":x: **|> %s**", ex.getMessage())
-                    .queue();
+            hook.sendMessageFormat(":x: **|> %s**", ex.getMessage()).queue();
             return;
         }
 
+        hook.sendMessage(":timer: **|> Re-syncing slash commands! this may take a few seconds to a few minutes~**")
+                .setEphemeral(true)
+                .queue();
         cx.getPinecone().resync().whenComplete((_, error) -> {
             if (error != null) {
-                cx.getInteraction()
-                        .getHook()
-                        .sendMessageFormat(
-                                "%s\n\n:warning: **|> syncing slash commands for plugin to Discord failed!**", message)
+                hook.editOriginalFormat(
+                                "%s\n:warning: **|> syncing slash commands for plugin to Discord had failed. :(**",
+                                message)
                         .queue();
             } else {
-                cx.getInteraction().getHook().sendMessage(message).queue();
+                hook.editOriginal(message).queue();
             }
         });
     }

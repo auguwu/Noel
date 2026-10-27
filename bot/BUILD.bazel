@@ -107,9 +107,11 @@ java_binary(
     stamp = 1,
     visibility = ["//:__pkg__"],
     runtime_deps = [
+        "//plugins/birthdays",
         "//plugins/discord",
         "//plugins/github",
         "//plugins/http-client",
+        "//plugins/mongodb",
         "//plugins/pinecone",
     ],
     deps = [

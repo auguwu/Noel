@@ -15,8 +15,9 @@
 
 package dev.floofy.noel;
 
-import dev.floofy.noel.pinecone.CommandInfo;
-import dev.floofy.noel.pinecone.CommandInterceptor;
+import dev.floofy.noel.pinecone.api.CommandInfo;
+import dev.floofy.noel.pinecone.api.CommandInterceptor;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import net.dv8tion.jda.api.entities.Member;
@@ -47,4 +48,6 @@ public interface Pinecone {
     ///
     /// @return completes when Discord has accepted every command list
     CompletableFuture<Void> resync();
+
+    Optional<String> mentionSlashCommand(String path, Long guild);
 }
