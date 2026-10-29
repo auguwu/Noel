@@ -30,8 +30,8 @@ public enum HttpMethod {
     @Override
     public String toString() {
         return switch (this) {
-            case Get -> "get";
-            case Post -> "post";
+            case Get -> "GET";
+            case Post -> "POST";
         };
     }
 }

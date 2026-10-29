@@ -21,20 +21,18 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class ResponseImpl implements Response {
     private final HttpHeaders headers = new DefaultHttpHeaders();
     private final ChannelHandlerContext context;
-    private final ObjectMapper objectMapper;
 
     private HttpResponseStatus status = HttpResponseStatus.OK;
+    private final JsonMapper mapper = JsonMapper.shared();
     private boolean sent = false;
 
-    protected ResponseImpl(ChannelHandlerContext context, ObjectMapper mapper) {
-        this.objectMapper = mapper;
+    protected ResponseImpl(ChannelHandlerContext context) {
         this.context = context;
     }
 
@@ -74,24 +72,24 @@ public class ResponseImpl implements Response {
         response.headers()
                 .set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=utf-8")
                 .set(headers);
-        context.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
 
+        context.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
         sent = true;
     }
 
     @Override
-    public void sendJSON(Object obj) throws IOException {
+    public void sendJSON(Object obj) {
         checkIfSent();
 
-        final String json = objectMapper.writeValueAsString(obj);
+        final String json = mapper.writeValueAsString(obj);
         final FullHttpResponse response = new DefaultFullHttpResponse(
                 HttpVersion.HTTP_1_1, status, Unpooled.copiedBuffer(json, StandardCharsets.UTF_8));
 
         response.headers()
                 .set(HttpHeaderNames.CONTENT_TYPE, "application/json; charset=utf-8")
                 .set(headers);
-        context.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
 
+        context.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
         sent = true;
     }
 }

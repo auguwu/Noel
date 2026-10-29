@@ -24,6 +24,7 @@ java_library(
     name = "api",
     srcs = glob(["src/dev/floofy/noel/http/**/*.java"]),
     deps = [
+        "//bot",
         "//settings",
         artifact("tools.jackson.core:jackson-databind"),
         artifact("io.netty:netty-codec-http"),

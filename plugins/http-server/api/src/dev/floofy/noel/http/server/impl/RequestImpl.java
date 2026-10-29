@@ -17,29 +17,28 @@ package dev.floofy.noel.http.server.impl;
 
 import dev.floofy.noel.http.server.HttpMethod;
 import dev.floofy.noel.http.server.Request;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.handler.codec.http.FullHttpRequest;
-import java.io.IOException;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import java.net.SocketAddress;
-import java.nio.charset.StandardCharsets;
-import tools.jackson.databind.ObjectMapper;
+import java.util.Optional;
 
 public class RequestImpl implements Request {
     private final SocketAddress remoteAddress;
-    private final ObjectMapper objectMapper;
+    private final QueryStringDecoder uri;
     private final FullHttpRequest netty;
     private final HttpMethod method;
 
-    protected RequestImpl(
-            FullHttpRequest request, HttpMethod method, SocketAddress remoteAddress, ObjectMapper mapper) {
+    protected RequestImpl(FullHttpRequest request, HttpMethod method, SocketAddress remoteAddress) {
         this.remoteAddress = remoteAddress;
-        this.objectMapper = mapper;
         this.method = method;
         this.netty = request;
+        this.uri = new QueryStringDecoder(request.uri());
     }
 
     @Override
     public String getPath() {
-        return netty.uri();
+        return uri.path();
     }
 
     @Override
@@ -53,8 +52,18 @@ public class RequestImpl implements Request {
     }
 
     @Override
-    public <T> T deserialize(Class<T> clazz) throws IOException {
-        final String body = netty.content().toString(StandardCharsets.UTF_8);
-        return objectMapper.readValue(body, clazz);
+    public Optional<String> getQueryParameter(String name) {
+        final var values = uri.parameters().get(name);
+        return values == null || values.isEmpty() ? Optional.empty() : Optional.of(values.getFirst());
+    }
+
+    @Override
+    public Optional<String> getHeader(String name) {
+        return Optional.ofNullable(netty.headers().get(name));
+    }
+
+    @Override
+    public byte[] getBody() {
+        return ByteBufUtil.getBytes(netty.content());
     }
 }

@@ -19,6 +19,9 @@ import dev.floofy.noel.http.server.HttpMethod;
 import dev.floofy.noel.http.server.Request;
 import dev.floofy.noel.http.server.Response;
 import dev.floofy.noel.http.server.Router;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.BiConsumer;
@@ -28,6 +31,7 @@ import java.util.function.BiConsumer;
 /// Concurrent, because plugins add and remove routes on the plugin manager's
 /// thread while Netty's threads look them up.
 public final class RouterImpl implements Router {
+    private static final Logger LOG = LoggerFactory.getLogger(RouterImpl.class);
     private final ConcurrentMap<String, BiConsumer<Request, Response>> routes = new ConcurrentHashMap<>();
 
     /// Runs the handler for a request, if one is routed.
@@ -35,8 +39,12 @@ public final class RouterImpl implements Router {
     /// @param response where the handler writes its reply
     /// @return `false` if no route matches
     public boolean executeRequest(Request request, Response response) {
-        final var handler = routes.get(key(request.getMethod(), request.getPath()));
+        final var key = key(request.getMethod(), request.getPath());
+        LOG.debug("executing route {} {} (key: [{}])", request.getMethod(), request.getPath(), key);
+
+        final var handler = routes.get(key);
         if (handler == null) {
+            LOG.warn("route [{} {}] was not found! did you register it in your plugin's `onPluginEnable'?", request.getMethod(), request.getPath());
             return false;
         }
 
@@ -51,8 +59,6 @@ public final class RouterImpl implements Router {
             throw new IllegalStateException("route %s %s is already registered".formatted(method, path));
         }
 
-        // Remove only this handler, in case the route was removed and re-added
-        // by someone else since.
         return () -> routes.remove(key, handler);
     }
 

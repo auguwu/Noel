@@ -18,6 +18,7 @@ package dev.floofy.noel.http.server.impl;
 import com.google.inject.Inject;
 import dev.floofy.noel.Setting;
 import dev.floofy.noel.Settings;
+import dev.floofy.noel.utils.Strings;
 import dev.floofy.noel.http.Server;
 import dev.floofy.noel.http.server.HttpMethod;
 import dev.floofy.noel.http.server.Router;
@@ -26,18 +27,17 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpObjectAggregator;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.*;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.ObjectMapper;
 
 /// A [Server] built on Netty.
 ///
@@ -53,7 +53,6 @@ public final class NettyServerImpl implements Server {
     private static final long SHUTDOWN_TIMEOUT_SECONDS = 5;
 
     private final AtomicInteger inflightRequests = new AtomicInteger(0);
-    private final ObjectMapper objectMapper = new ObjectMapper();
     private final RouterImpl router = new RouterImpl();
     private final String address;
     private final int port;
@@ -77,7 +76,7 @@ public final class NettyServerImpl implements Server {
 
     @Override
     public Router getRouter() {
-        return null;
+        return router;
     }
 
     @Override
@@ -92,6 +91,7 @@ public final class NettyServerImpl implements Server {
 
         this.bossGroup = new MultiThreadIoEventLoopGroup(
                 1, new DefaultThreadFactory("Noel-NettyBoss", true), NioIoHandler.newFactory());
+
         this.workerGroup = new MultiThreadIoEventLoopGroup(
                 0, new DefaultThreadFactory("Noel-NettyWorker", true), NioIoHandler.newFactory());
 
@@ -104,6 +104,7 @@ public final class NettyServerImpl implements Server {
                         protected void initChannel(SocketChannel channel) throws Exception {
                             channel.pipeline()
                                     .addLast(new HttpServerCodec())
+                                    .addLast(new LogOutboundHandler())
                                     .addLast(new HttpObjectAggregator(65535))
                                     .addLast(new Handler(NettyServerImpl.this));
                         }
@@ -145,6 +146,19 @@ public final class NettyServerImpl implements Server {
         this.workerGroup = null;
     }
 
+    static final class LogOutboundHandler extends ChannelOutboundHandlerAdapter {
+        private static final Logger LOG = LoggerFactory.getLogger(NettyServerImpl.class);
+
+        @Override
+        public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+            if (msg instanceof FullHttpResponse res && LOG.isTraceEnabled()) {
+                LOG.trace("{} :: {}", res.status(), res.content().toString(StandardCharsets.UTF_8));
+            }
+
+            ctx.write(msg, promise);
+        }
+    }
+
     static final class Handler extends SimpleChannelInboundHandler<FullHttpRequest> {
         private static final Logger LOG = LoggerFactory.getLogger(Handler.class);
         private final NettyServerImpl server;
@@ -168,7 +182,7 @@ public final class NettyServerImpl implements Server {
             LOG.trace("received incoming request from {}", remoteAddress);
 
             final var method = HttpMethod.fromNetty(httpRequest.method());
-            final var response = new ResponseImpl(cx, server.objectMapper);
+            final var response = new ResponseImpl(cx);
             if (method == null) {
                 response.setStatus(HttpResponseStatus.METHOD_NOT_ALLOWED)
                         .sendJSON(error("unknown HTTP method `%s'".formatted(httpRequest.method())));
@@ -176,11 +190,11 @@ public final class NettyServerImpl implements Server {
                 return;
             }
 
+            final var now = System.nanoTime();
             LOG.trace("START :: {} {}", method, httpRequest.uri());
             final boolean found;
             try {
-                found = server.router.executeRequest(
-                        new RequestImpl(httpRequest, method, remoteAddress, server.objectMapper), response);
+                found = server.router.executeRequest(new RequestImpl(httpRequest, method, remoteAddress), response);
             } catch (Exception ex) {
                 // Without this, the client never got a reply and waited until it timed out.
                 LOG.error("handler for {} {} failed:", method, httpRequest.uri(), ex);
@@ -196,12 +210,18 @@ public final class NettyServerImpl implements Server {
                 response.setStatus(HttpResponseStatus.NOT_FOUND)
                         .sendJSON(error("unknown route: %s %s".formatted(httpRequest.method(), httpRequest.uri())));
             }
+
+            LOG.debug("END :: {} {} ~ took {}",
+                    method,
+                    httpRequest.uri(),
+                    Strings.format(Duration.of(System.nanoTime() - now, ChronoUnit.NANOS)));
         }
 
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
             LOG.debug(
                     "closing connection from {} after an error:", ctx.channel().remoteAddress(), cause);
+
             ctx.close();
         }
 

@@ -73,9 +73,8 @@ public final class Help extends AbstractSlashCommand {
         }
 
         final var theCommand = cmd.get();
-        final var nameAsMention = cx.getPinecone()
-                .mentionSlashCommand(theCommand.name(), guildId)
-                .orElse(theCommand.name());
+        final var nameAsMention =
+                cx.getPinecone().mentionSlashCommand(theCommand.name(), guildId).orElse(theCommand.name());
 
         final var children = new ArrayList<ContainerChildComponent>();
         children.add(TextDisplay.ofFormat("## %s", nameAsMention));

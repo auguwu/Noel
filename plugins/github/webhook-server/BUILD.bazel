@@ -12,3 +12,26 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+load("@rules_jvm_external//:defs.bzl", "artifact")
+load("//bazel/noel:plugin.bzl", "noel_plugin")
+
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+noel_plugin(
+    name = "webhook-server",
+    srcs = ["src/dev/floofy/noel/github/webhooks/GitHubWebhooksPlugin.java"],
+    deps = [
+        "//plugins/discord",
+        "//plugins/github",
+        "//plugins/github/webhook-server/api",
+        "//plugins/http-server",
+        "//plugins/http-server/api",
+        "//plugins/mongodb",
+        "//plugins/pinecone",
+        artifact("com.google.inject:guice"),
+        artifact("org.slf4j:slf4j-api"),
+    ],
+)

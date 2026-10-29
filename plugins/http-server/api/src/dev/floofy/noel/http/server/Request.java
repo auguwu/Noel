@@ -15,8 +15,8 @@
 
 package dev.floofy.noel.http.server;
 
-import java.io.IOException;
 import java.net.SocketAddress;
+import java.util.Optional;
 
 /// An HTTP request.
 public interface Request {
@@ -29,6 +29,20 @@ public interface Request {
     /// Returns the remote connection address that established this request.
     SocketAddress getRemoteAddress();
 
-    /// Deserialize a body payload from JSON into the respective class.
-    <T> T deserialize(Class<T> clazz) throws IOException;
+    /// Returns a header's value. Header names are case-insensitive.
+    /// @param name the header's name, such as `X-GitHub-Event`
+    /// @return the first value, or empty if the header isn't present
+    Optional<String> getHeader(String name);
+
+    /// Returns a query parameter's value, decoded.
+    /// @param name the parameter's name
+    /// @return the first value, or empty if the parameter isn't present
+    Optional<String> getQueryParameter(String name);
+
+    /// Returns the raw body, exactly as received. Use this when the bytes
+    /// themselves matter, such as for verifying a signature; re-serializing a
+    /// parsed body changes them.
+    ///
+    /// @return a copy of the body; empty if there is none
+    byte[] getBody();
 }

@@ -110,6 +110,7 @@ java_binary(
         "//plugins/birthdays",
         "//plugins/discord",
         "//plugins/github",
+        "//plugins/github/webhook-server",
         "//plugins/http-client",
         "//plugins/mongodb",
         "//plugins/pinecone",

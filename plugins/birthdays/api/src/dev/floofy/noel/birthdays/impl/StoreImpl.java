@@ -54,6 +54,7 @@ public final class StoreImpl implements Store {
     public Optional<Birthday> find(long guild, long user) {
         final var result =
                 collection().find(Filters.eq("_id", Birthday.id(guild, user))).first();
+
         return Optional.ofNullable(result).map(Birthday::fromDocument);
     }
 

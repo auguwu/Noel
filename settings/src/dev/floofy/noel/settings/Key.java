@@ -254,12 +254,6 @@ public final class Key {
 
     @Override
     public String toString() {
-        return "Key[" + path + "]";
+        return path;
     }
 }
-
-/*
-public final class Key {
-
-}
- */

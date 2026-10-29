@@ -12,3 +12,31 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm_external//:defs.bzl", "artifact")
+
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+java_library(
+    name = "api",
+    srcs = glob(["src/dev/floofy/noel/github/webhooks/**/*.java"]),
+    deps = [
+        "//bot",
+        "//plugins/github/api",
+        "//plugins/http-server/api",
+        "//plugins/pinecone/api",
+        "//settings",
+        artifact("com.google.errorprone:error_prone_annotations"),
+        artifact("tools.jackson.core:jackson-databind"),
+        artifact("org.mongodb:mongodb-driver-sync"),
+        artifact("org.mongodb:mongodb-driver-core"),
+        artifact("io.netty:netty-codec-http"),
+        artifact("com.google.inject:guice"),
+        artifact("org.slf4j:slf4j-api"),
+        artifact("org.mongodb:bson"),
+        artifact("net.dv8tion:JDA"),
+    ],
+)
