@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
         id = "dev.floofy.noel.DiscordPlugin",
         description = "Connects to Discord and makes JDA accessible to other plugins")
 public final class DiscordPlugin extends Plugin {
+    private static final Setting<List<GatewayIntent>> INTENTS = Setting.list("discord.intents", path -> Setting.enumValue(path, GatewayIntent.class));
     private static final Setting<String> TOKEN = Setting.string("discord.token");
     private static final Logger LOG = LoggerFactory.getLogger(DiscordPlugin.class);
 
@@ -60,8 +61,10 @@ public final class DiscordPlugin extends Plugin {
     @Provides
     @Singleton
     JDA jda(EventListener listener) {
-        return JDABuilder.createLight(
-                        settings.require(TOKEN), List.of(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS))
+        final var intents = settings.get(INTENTS).orElse(List.of());
+        final var token = settings.require(TOKEN);
+
+        return JDABuilder.createLight(token, intents)
                 .setAutoReconnect(true)
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .setEnableShutdownHook(false)

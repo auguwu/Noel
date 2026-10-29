@@ -69,7 +69,7 @@ public final class SchedulerImpl implements Scheduler {
         }
 
         this.running = true;
-        this.task = this.executor.scheduleWithFixedDelay(this::tick, 0, 1, TimeUnit.SECONDS);
+        this.task = this.executor.scheduleWithFixedDelay(this::tick, 0, 1, TimeUnit.MINUTES);
     }
 
     @Override

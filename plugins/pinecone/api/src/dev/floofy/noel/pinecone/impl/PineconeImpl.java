@@ -273,16 +273,22 @@ public final class PineconeImpl extends ListenerAdapter implements Pinecone, Aut
         final List<CompletableFuture<?>> updates = new ArrayList<>();
         updates.add(globalCommands.submit().thenAccept(commands -> {
             LOG.info("successfully upserted or updated {} global commands", commands.size());
+            this.globalIds = idsByName(commands);
         }));
 
         for (var ent : guildOnlySlashCommands.entrySet()) {
             updates.add(ent.getValue().submit().thenAccept(cmds -> {
                 LOG.info("[{}] successfully upserted or updated {} guild-only commands", ent.getKey(), cmds.size());
+                guildIds.put(ent.getKey(), idsByName(cmds));
             }));
         }
 
         updates.addAll(clearStaleGuilds(guildOnlySlashCommands.keySet()));
         return CompletableFuture.allOf(updates.toArray(CompletableFuture[]::new));
+    }
+
+    private static Map<String, Long> idsByName(List<Command> commands) {
+        return commands.stream().collect(Collectors.toUnmodifiableMap(Command::getName, Command::getIdLong));
     }
 
     private List<CompletableFuture<?>> clearStaleGuilds(Set<Long> updatedGuilds) {

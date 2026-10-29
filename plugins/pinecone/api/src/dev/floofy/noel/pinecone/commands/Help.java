@@ -73,12 +73,12 @@ public final class Help extends AbstractSlashCommand {
         }
 
         final var theCommand = cmd.get();
-        final var mention = cx.getPinecone()
+        final var nameAsMention = cx.getPinecone()
                 .mentionSlashCommand(theCommand.name(), guildId)
-                .map(s -> String.format(" [%s]", s))
-                .orElse("");
+                .orElse(theCommand.name());
+
         final var children = new ArrayList<ContainerChildComponent>();
-        children.add(TextDisplay.ofFormat("## Slash Command%s", mention));
+        children.add(TextDisplay.ofFormat("## %s", nameAsMention));
         children.add(TextDisplay.ofFormat("*%s*", theCommand.description()));
 
         if (!theCommand.subcommands().isEmpty() || !theCommand.groups().isEmpty()) {
@@ -111,6 +111,7 @@ public final class Help extends AbstractSlashCommand {
         if (guild == null) {
             cx.reply(":question: **|> this command requires to be called in a guild.**")
                     .queue();
+
             return null;
         }
 
