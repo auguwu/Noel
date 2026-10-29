@@ -312,22 +312,43 @@ public final class EventFormatter {
             return null;
         }
 
+        final var merged = pr.path("merged").asBoolean(false);
         final var actionEmoji = switch (action) {
             case "opened", "reopened" -> ":green_circle:";
             case "ready_for_review" -> ":eyes:";
-            case "closed" -> pr.path("merged").asBoolean(false) ? ":purple_circle:" : ":red_circle:";
+            case "closed" -> merged ? ":purple_circle:" : ":red_circle:";
+            case "converted_to_draft" -> ":pencil:";
+            case "assigned" -> ":bust_in_silhoutte:";
+            case "unassigned" -> ":busts_in_silhoutte:";
             default -> null;
         };
 
+        if (actionEmoji == null) {
+            return null;
+        }
+
+        final var issuer = actor(payload.path("sender"));
         final var actionMessage = switch (action) {
-            case "ready_for_review" -> "%s marked ready for review";
-            case "closed" -> pr.path("merged").asBoolean(false) ? "%s merged" : "%s closed";
-            default -> action;
+            case "opened" -> String.format("opened by %s", issuer);
+            case "reopened" -> String.format("was reopened by %s", issuer);
+            case "ready_for_review" -> String.format("was marked ready for review by %s", issuer);
+            case "converted_to_draft" -> String.format("was converted to a draft by %s", issuer);
+            case "closed" -> {
+                if (merged) {
+                    yield String.format("was merged by %s -> %s", actor(pr.path("merged_by")), monospace(Objects.requireNonNull(text(pr, "base", "ref"))));
+                } else {
+                    yield String.format("was closed by %s", issuer);
+                }
+            }
+
+            case "assigned" -> String.format("was assigned to %s", actor(payload.path("assignee")));
+            case "unassigned" -> String.format("was unassigned from %s", actor(payload.path("assignee")));
+            default -> throw new AssertionError(action); // the emoji switch returned for everything else
         };
 
         return reply(
-                "%s | Pull Request %s - %s   [%s]",
-                actionEmoji, numbered(pr), String.format(actionMessage, actor(payload)), repository(payload));
+                "%s | Pull Request %s %s   [%s]",
+                actionEmoji, numbered(pr), actionMessage, repository(payload));
     }
 
     private MessageCreateData issues(JsonNode payload) {

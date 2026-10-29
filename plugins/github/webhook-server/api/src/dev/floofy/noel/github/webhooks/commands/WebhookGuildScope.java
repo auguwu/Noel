@@ -19,12 +19,12 @@ import com.google.inject.Inject;
 import dev.floofy.noel.Setting;
 import dev.floofy.noel.Settings;
 import dev.floofy.noel.pinecone.api.GuildScope;
-
 import java.util.List;
 import java.util.Set;
 
 public final class WebhookGuildScope implements GuildScope {
-    private static final Setting<List<Long>> ONLY_IN = Setting.list("plugins.github.webhooks.onlyIn", Setting::snowflake);
+    private static final Setting<List<Long>> ONLY_IN =
+            Setting.list("plugins.github.webhooks.onlyIn", Setting::snowflake);
 
     @Inject
     private Settings settings;

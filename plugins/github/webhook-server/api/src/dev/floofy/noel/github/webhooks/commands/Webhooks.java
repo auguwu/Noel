@@ -30,6 +30,10 @@ import dev.floofy.noel.pinecone.api.AbstractSlashCommand;
 import dev.floofy.noel.pinecone.api.AutocompleteContext;
 import dev.floofy.noel.pinecone.api.Autocompleter;
 import dev.floofy.noel.pinecone.api.CommandContext;
+import java.time.Clock;
+import java.util.*;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -38,11 +42,6 @@ import net.dv8tion.jda.api.entities.channel.unions.GuildChannelUnion;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.utils.MarkdownUtil;
-
-import java.time.Clock;
-import java.util.*;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @SlashCommand(
         name = "webhooks",
@@ -141,20 +140,19 @@ public final class Webhooks extends AbstractSlashCommand {
         public void add(
                 CommandContext cx,
                 @Option(
-                        name = "channel",
-                        description = "channel to post events in",
-                        required = true,
-                        channelTypes = {ChannelType.TEXT, ChannelType.NEWS},
-                        type = OptionType.CHANNEL
-                )
-                GuildChannelUnion channel,
-
+                                name = "channel",
+                                description = "channel to post events in",
+                                required = true,
+                                channelTypes = {ChannelType.TEXT, ChannelType.NEWS},
+                                type = OptionType.CHANNEL)
+                        GuildChannelUnion channel,
                 @Option(name = "repository", description = "only post events from this repository (owner/name)")
-                Optional<String> repository,
-
-                @Option(name = "events", description = "Events to post, comma-separated (default: push, pull_request, issues, release)")
-                Optional<String> events
-        ) {
+                        Optional<String> repository,
+                @Option(
+                                name = "events",
+                                description = "Events to post, comma-separated (default: push, pull_request, issues,"
+                                        + " release)")
+                        Optional<String> events) {
             final var guild = cx.getGuild();
             if (guild == null) {
                 return;
@@ -162,13 +160,20 @@ public final class Webhooks extends AbstractSlashCommand {
 
             final var baseUrl = settings.get(PUBLIC_URL).map(url -> url.replaceAll("/+$", ""));
             if (baseUrl.isEmpty()) {
-                cx.replyFormat(":warnings: **|> `%s` isn't configured! there is no URL to give to GitHub. this is a internal issue, report this to the owner.**", PUBLIC_URL.key()).setEphemeral(true).queue();
+                cx.replyFormat(
+                                ":warning: **|> `%s` isn't configured! there is no URL to give to GitHub. this is a"
+                                        + " internal issue, report this to the owner.**",
+                                PUBLIC_URL.key())
+                        .setEphemeral(true)
+                        .queue();
                 return;
             }
 
             final var problem = checkChannel(guild, channel);
             if (problem.isPresent()) {
-                cx.replyFormat(":x: **|> %s**", problem.get()).setEphemeral(true).queue();
+                cx.replyFormat(":x: **|> %s**", problem.get())
+                        .setEphemeral(true)
+                        .queue();
                 return;
             }
 
@@ -176,7 +181,11 @@ public final class Webhooks extends AbstractSlashCommand {
             if (repository.isPresent()) {
                 repo = repository.map(String::strip).get();
                 if (!REPOSITORY.matcher(repo).matches()) {
-                    cx.replyFormat(":x: **|> `%s` is not a valid repository! use `owner/name` (e.g., `auguwu/Noel`)**", repo).setEphemeral(true).queue();
+                    cx.replyFormat(
+                                    ":x: **|> `%s` is not a valid repository! use `owner/name` (e.g., `auguwu/Noel`)**",
+                                    repo)
+                            .setEphemeral(true)
+                            .queue();
                     return;
                 }
             }
@@ -185,12 +194,18 @@ public final class Webhooks extends AbstractSlashCommand {
             try {
                 chosen = events.map(Event::parseList).orElse(Set.of());
             } catch (IllegalArgumentException ex) {
-                cx.replyFormat(":x: **|> %s**", ex.getMessage()).setEphemeral(true).queue();
+                cx.replyFormat(":x: **|> %s**", ex.getMessage())
+                        .setEphemeral(true)
+                        .queue();
                 return;
             }
 
             if (store.count(guild.getIdLong()) >= SubscriptionStore.MAX_PER_GUILD) {
-                cx.replyFormat(":x: **|> this server already has %d webhooks; remove one first.**", SubscriptionStore.MAX_PER_GUILD).setEphemeral(true).queue();
+                cx.replyFormat(
+                                ":x: **|> this server already has %d webhooks; remove one first.**",
+                                SubscriptionStore.MAX_PER_GUILD)
+                        .setEphemeral(true)
+                        .queue();
                 return;
             }
 
@@ -202,31 +217,40 @@ public final class Webhooks extends AbstractSlashCommand {
                     chosen,
                     Signatures.newSecret(),
                     cx.getUser().getIdLong(),
-                    clock.instant()
-            );
+                    clock.instant());
 
             store.save(webhook);
-            cx.reply(setupInstructions(baseUrl.get(), webhook, "created")).setEphemeral(true).queue();
+            cx.reply(setupInstructions(baseUrl.get(), webhook, "created"))
+                    .setEphemeral(true)
+                    .queue();
         }
 
         @Subcommand(description = "Removes a GitHub webhook")
-        public void remove(CommandContext cx,
-                           @Option(name = "id", description = "webhook id", required = true) String id) {
+        public void remove(
+                CommandContext cx, @Option(name = "id", description = "webhook id", required = true) String id) {
             final var guild = cx.getGuild();
             if (guild == null) {
                 return;
             }
 
             final var removed = store.delete(guild.getIdLong(), id.strip());
-            cx.reply(removed ? String.format(":wastebucket: **|> Webhook `%s` has been removed!**\n-# Delete the webhook from GitHub as well! Deliveries will fail with 404.", id) : unknown(id)).setEphemeral(true).queue();
+            cx.reply(
+                            removed
+                                    ? String.format(
+                                            ":wastebucket: **|> Webhook `%s` has been removed!**\n"
+                                                    + "-# Delete the webhook from GitHub as well! Deliveries will fail"
+                                                    + " with 404.",
+                                            id)
+                                    : unknown(id))
+                    .setEphemeral(true)
+                    .queue();
         }
 
         @Subcommand(description = "changes which events a webhook posts")
         public void events(
                 CommandContext cx,
                 @Option(name = "id", description = "webhook id", required = true) String id,
-                @Option(name = "events", description = "events to post", required = true) String events
-        ) {
+                @Option(name = "events", description = "events to post", required = true) String events) {
             final var guild = cx.getGuild();
             if (guild == null) {
                 return;
@@ -236,15 +260,80 @@ public final class Webhooks extends AbstractSlashCommand {
             try {
                 chosen = Event.parseList(events);
             } catch (IllegalArgumentException ex) {
-                cx.replyFormat(":x: **|> %s**", ex.getMessage()).setEphemeral(true).queue();
+                cx.replyFormat(":x: **|> %s**", ex.getMessage())
+                        .setEphemeral(true)
+                        .queue();
                 return;
             }
 
             final var updated = store.setEvents(guild.getIdLong(), id.strip(), chosen);
-            cx.reply(updated
-                    ? String.format(":white_check_mark: **|> Webhook `%s` now posts: %s.**\n-# Make sure they're selected on GitHub to receive!",
-                        id, String.join(", ", chosen.isEmpty() ? Event.defaults() : chosen))
-                    : unknown(id)).setEphemeral(true).queue();
+            cx.reply(
+                            updated
+                                    ? String.format(
+                                            ":white_check_mark: **|> Webhook `%s` now posts: %s.**\n"
+                                                    + "-# Make sure they're selected on GitHub to receive!",
+                                            id, String.join(", ", chosen.isEmpty() ? Event.defaults() : chosen))
+                                    : unknown(id))
+                    .setEphemeral(true)
+                    .queue();
+        }
+
+        @Subcommand(description = "moves a webhook to another channel")
+        public void channel(
+                CommandContext cx,
+                @Option(name = "id", description = "webhook id", required = true) String id,
+                @Option(
+                                name = "channel",
+                                description = "channel to post events in",
+                                type = OptionType.CHANNEL,
+                                required = true,
+                                channelTypes = {ChannelType.TEXT, ChannelType.NEWS})
+                        GuildChannelUnion channel) {
+            final var guild = cx.getGuild();
+            if (guild == null) {
+                return;
+            }
+
+            final var problem = checkChannel(guild, channel);
+            if (problem.isPresent()) {
+                cx.replyFormat(":x: **|> %s**", problem.get())
+                        .setEphemeral(true)
+                        .queue();
+                return;
+            }
+
+            final var updated = store.setChannel(guild.getIdLong(), id.strip(), channel.getIdLong());
+            cx.reply(
+                            updated
+                                    ? String.format(
+                                            ":white_check_mark: **|> Webhook `%s` now posts to %s**",
+                                            id.strip(), channel.getAsMention())
+                                    : unknown(id))
+                    .setEphemeral(true)
+                    .queue();
+        }
+
+        @Subcommand(name = "rotate-secret", description = "give a new webhook a new secret, if the old one leaked")
+        public void rotate(
+                CommandContext cx, @Option(name = "id", description = "webhook id", required = true) String id) {
+            final var guild = cx.getGuild();
+            if (guild == null) {
+                return;
+            }
+
+            final var secret = Signatures.newSecret();
+            if (!store.setSecret(guild.getIdLong(), id.strip(), secret)) {
+                cx.reply(unknown(id)).setEphemeral(true).queue();
+                return;
+            }
+
+            cx.replyFormat(
+                            ":key: **|> New secret for webhook `%s`: ||`%s`||**\n"
+                                + "-# Paste it into the webhook's **Secret** field on GitHub. Until you do, deliveries"
+                                + " will fail with `401` and nothing will be posted.",
+                            id.strip(), secret)
+                    .setEphemeral(true)
+                    .queue();
         }
 
         @Autocomplete("id")
@@ -256,15 +345,18 @@ public final class Webhooks extends AbstractSlashCommand {
 
             final var query = typed.strip().toLowerCase(Locale.ROOT);
             final var out = new ArrayList<Command.Choice>();
-            for (var webhook: store.list(guild.getIdLong())) {
+            for (var webhook : store.list(guild.getIdLong())) {
                 final var channel = guild.getGuildChannelById(webhook.channelId());
-                final var label = String.format("%s -> #%s (%s)",
+                final var label = String.format(
+                        "%s -> #%s (%s)",
                         webhook.repository() == null ? "any repository" : webhook.repository(),
                         channel == null ? "deleted-channel" : channel.getName(),
                         webhook.id());
 
                 if (query.isEmpty() || label.toLowerCase(Locale.ROOT).contains(query)) {
-                    out.add(new Command.Choice(label.length() > 100 ? String.format("%s...", label.substring(0, 99)) : label, webhook.id()));
+                    out.add(new Command.Choice(
+                            label.length() > 100 ? String.format("%s...", label.substring(0, 99)) : label,
+                            webhook.id()));
                 }
             }
 
@@ -312,23 +404,33 @@ public final class Webhooks extends AbstractSlashCommand {
         }
 
         private static String unknown(String id) {
-            return String.format(":question: **|> this server has no webhook `%s`? view `/webhooks list` again.**", id.strip());
+            return String.format(
+                    ":question: **|> this server has no webhook `%s`? view `/webhooks list` again.**", id.strip());
         }
 
         static String setupInstructions(String baseUrl, Subscription webhook, String verb) {
             final var url = String.format("%s/webhooks/github?id=%s", baseUrl, webhook.id());
-            return String.format("""
-            :white_check_mark: **|> Webhook `%s` has been %s to post in <#%d>%s**
-            \s
-            ### Instructions
-            In GitHub, open the repository (or organization)'s Webhooks settings (Settings ~> Webhooks ~> Add webhook) and fill in the properties:
-            * **Payload URL**:                   `%s`
-            * **Content Type**:                  `application/json`
-            * **Secret** (shown only once here): ||`%s`||
-            * **Events**: Click on *"Let me select individual events"* and tick: %s
-            \s
-            -# :warning: WARNING: this will be the only time the webhook secret is shown! if it is lost, run `/webhooks config rotate-secret`.
-            \s""".stripIndent(), webhook.id(), verb, webhook.channelId(), webhook.repository() == null ? "" : String.format(" for %s", bold(webhook.repository())), url, webhook.secret(), String.join(", ", webhook.effectiveEvents()));
+            return String.format(
+                    """
+                    :white_check_mark: | Webhook `%s` has been %s to post in <#%d>%s
+                    \s
+                    ### Instructions
+                    In GitHub, open the repository (or organization)'s Webhooks settings (Settings ~> Webhooks ~> Add webhook) and fill in the properties:
+                    * **Payload URL**:                   `%s`
+                    * **Content Type**:                  `application/json`
+                    * **Secret** (shown only once here): ||`%s`||
+                    * **Events**: Click on *"Let me select individual events"* and tick: %s
+                    \s
+                    -# :warning: WARNING: this will be the only time the webhook secret is shown! if it is lost, run `/webhooks config rotate-secret`.
+                    \s\
+                    """.stripIndent(),
+                    webhook.id(),
+                    verb,
+                    webhook.channelId(),
+                    webhook.repository() == null ? "" : String.format(" for %s", bold(webhook.repository())),
+                    url,
+                    webhook.secret(),
+                    String.join(", ", webhook.effectiveEvents()));
         }
     }
 }

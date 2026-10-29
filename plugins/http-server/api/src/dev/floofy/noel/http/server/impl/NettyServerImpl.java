@@ -18,10 +18,10 @@ package dev.floofy.noel.http.server.impl;
 import com.google.inject.Inject;
 import dev.floofy.noel.Setting;
 import dev.floofy.noel.Settings;
-import dev.floofy.noel.utils.Strings;
 import dev.floofy.noel.http.Server;
 import dev.floofy.noel.http.server.HttpMethod;
 import dev.floofy.noel.http.server.Router;
+import dev.floofy.noel.utils.Strings;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioIoHandler;
@@ -211,7 +211,8 @@ public final class NettyServerImpl implements Server {
                         .sendJSON(error("unknown route: %s %s".formatted(httpRequest.method(), httpRequest.uri())));
             }
 
-            LOG.debug("END :: {} {} ~ took {}",
+            LOG.debug(
+                    "END :: {} {} ~ took {}",
                     method,
                     httpRequest.uri(),
                     Strings.format(Duration.of(System.nanoTime() - now, ChronoUnit.NANOS)));

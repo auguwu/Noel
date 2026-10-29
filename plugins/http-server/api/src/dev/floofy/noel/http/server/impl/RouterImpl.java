@@ -19,12 +19,11 @@ import dev.floofy.noel.http.server.HttpMethod;
 import dev.floofy.noel.http.server.Request;
 import dev.floofy.noel.http.server.Response;
 import dev.floofy.noel.http.server.Router;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.BiConsumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /// Exact-match router, keyed by `METHOD:path`.
 ///
@@ -44,7 +43,10 @@ public final class RouterImpl implements Router {
 
         final var handler = routes.get(key);
         if (handler == null) {
-            LOG.warn("route [{} {}] was not found! did you register it in your plugin's `onPluginEnable'?", request.getMethod(), request.getPath());
+            LOG.warn(
+                    "route [{} {}] was not found! did you register it in your plugin's `onPluginEnable'?",
+                    request.getMethod(),
+                    request.getPath());
             return false;
         }
 
