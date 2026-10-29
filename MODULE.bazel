@@ -31,7 +31,7 @@ maven.install(
     artifacts = [
         "io.netty:netty-transport-native-unix-common:4.2.19.Final",
         "tools.jackson.dataformat:jackson-dataformat-yaml:3.2.3",
-        "com.google.errorprone:error_prone_annotations:2.50.0",
+        "com.google.errorprone:error_prone_annotations:2.51.0",
         "io.opentelemetry:opentelemetry-exporter-otlp:1.67.0",
         "com.fasterxml.jackson.core:jackson-annotations:2.20",
         "dev.openjavaformat:open-java-format:2.98.0.6",
