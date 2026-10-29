@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM debian:trixie-slim AS glibc
+FROM debian:trixie-slim@sha256:f6b08b09a05725f9431502d3b5714f5c4576e82c1a84fa1debe0c24a7e0c3ec4 AS glibc
 
 # TODO(@auguwu/Noel): Switch to `cr.noelware.cloud/bazel/bazel:${BAZEL_VERSION}-alpine` once available
-FROM frolvlad/alpine-glibc:alpine-3.22_glibc-2.42 AS bazel
+FROM frolvlad/alpine-glibc:alpine-3.22_glibc-2.42@sha256:6f39887bfd345165186486edbda2702bbf111e77941dab1bdebad8c34ca8d35d AS bazel
 
 RUN apk upgrade && apk add --no-cache build-base python3 bash unzip zip curl linux-headers
 
@@ -55,7 +55,7 @@ WORKDIR /build
 ENV EXTRA_BAZEL_ARGS="--tool_java_runtime_version=local_jdk --java_runtime_version=local_jdk"
 RUN bazel --bazelrc=.dockerbuild.bazelrc build //bot:bootstrap_deploy.jar --config=opt
 
-FROM eclipse-temurin:25.0.4.1_1-jdk-alpine-3.24 AS jdk-runtime
+FROM eclipse-temurin:25.0.4.1_1-jdk-alpine-3.24@sha256:1e20ead9eec7234db293f1913438090d533ed47c0b9e12dc8c7627a802a44ed6 AS jdk-runtime
 
 COPY --from=build /build/bazel-bin/bot/bootstrap_deploy.jar /tmp/bot.jar
 RUN apk update && \
@@ -66,7 +66,7 @@ RUN apk update && \
           --compress=zip-6 \
           --output /runtime
 
-FROM alpine:3.24
+FROM alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a
 
 RUN apk update && apk add --no-cache bash tini libc6-compat gcompat file
 WORKDIR /app/noel
