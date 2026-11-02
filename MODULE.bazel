@@ -49,7 +49,7 @@ maven.install(
         "ch.qos.logback:logback-core:1.6.5",
         "com.squareup.okhttp3:okhttp:5.5.0",
         "com.google.inject:guice:7.0.0",
-        "org.jspecify:jspecify:1.0.0",
+        "org.jspecify:jspecify:1.0.1",
         "org.slf4j:slf4j-api:2.0.20",
         "org.mongodb:bson:5.13.0",
         "io.sentry:sentry:8.61.0",
