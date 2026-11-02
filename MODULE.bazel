@@ -47,7 +47,7 @@ maven.install(
         "io.netty:netty-buffer:4.2.19.Final",
         "io.netty:netty-common:4.2.19.Final",
         "ch.qos.logback:logback-core:1.6.5",
-        "com.squareup.okhttp3:okhttp:5.5.0",
+        "com.squareup.okhttp3:okhttp:5.5.1",
         "com.google.inject:guice:7.0.0",
         "org.jspecify:jspecify:1.0.0",
         "org.slf4j:slf4j-api:2.0.20",
